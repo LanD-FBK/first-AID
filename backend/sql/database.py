@@ -1,6 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from collections.abc import Generator
+from typing import Annotated
+
+from fastapi import Depends
+from sqlmodel import create_engine, Session
 
 from config.settings import settings
 
@@ -12,13 +14,9 @@ if DB_ENGINE.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 engine = create_engine(DB_ENGINE, connect_args=connect_args)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+def get_db() -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+SessionDep = Annotated[Session, Depends(get_db)]
 

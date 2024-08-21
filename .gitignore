@@ -1,4 +1,7 @@
 __pycache__
 env
 _old
-
+*.sqlite
+files
+test.py
+.idea

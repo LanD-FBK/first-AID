@@ -1,5 +1,7 @@
-from fastapi import Query
 from typing import Annotated
+
+from fastapi import Query
+
 
 class ListCommons:
     def __init__(self,
