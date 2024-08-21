@@ -92,7 +92,6 @@ def delete_user(db: Session, db_user: User):
         record.delete()
     db.add(db_user)
     db.commit()
-    return True
 
 def edit_user(db: Session, db_user: User, user: UserCreate):
     if user.password:
@@ -191,4 +190,3 @@ def delete_project(db: Session, db_project: Project):
         record.delete()
     db.add(db_project)
     db.commit()
-    return True

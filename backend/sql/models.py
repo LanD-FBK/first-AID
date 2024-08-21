@@ -121,11 +121,16 @@ class ProjectOutputWithUsers(ProjectOutput):
 
 ### Tables - Project
 
-class FileCreate(SQLModel):
+class FileBase(SQLModel):
     name: str
-    filename: str
     size: int
+
+class FileCreate(FileBase):
+    filename: str
     project_id: int = Field(foreign_key="project.id")
+
+class FileOutput(FileBase):
+    id: int
 
 class File(FileCreate, TimestampModel, DeletedModel, table=True):
     __tablename__: str = "file"

@@ -7,7 +7,7 @@ import sql.crud as crud
 from routes.common import ListCommons
 from routes.login import get_current_user, user_must_be_admin
 from sql.database import get_db
-from sql.models import ProjectOutputWithUsers, ProjectCreate, Project
+from sql.models import ProjectOutputWithUsers, ProjectCreate, Project, ProjectUserLink
 from sql.models import User
 
 router = APIRouter()
