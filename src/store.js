@@ -38,3 +38,14 @@ export const useVariablesStore = defineStore('variables', {
     errorMaxWidth: '350px'
   })
 })
+
+export const useNewTaskStore = defineStore('newTask', {
+  state: () => ({
+    initialData: ['Empty', 'Pre-filled'],
+    newTurn: ['Clean', 'Choice'],
+    language: [
+      { complete: 'Italiano', apiFormat: 'it' },
+      { complete: 'English', apiFormat: 'en' }
+    ]
+  })
+})

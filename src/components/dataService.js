@@ -188,5 +188,9 @@ export default {
         console.log('false')
         return false
       })
+  },
+
+  getTaskData(endpoint) {
+    return axios.get(endpoint)
   }
 }
