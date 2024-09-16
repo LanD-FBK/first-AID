@@ -157,6 +157,7 @@ export default {
     taskLanguage,
     taskIsActive,
     taskMeta,
+    taskActorsList,
     taskUsersList,
     taskFilesList
   ) {
@@ -167,6 +168,7 @@ export default {
       language: taskLanguage,
       is_active: taskIsActive,
       meta: taskMeta,
+      actors_list: taskActorsList,
       users_list: taskUsersList,
       files_list: taskFilesList
     })
@@ -188,5 +190,9 @@ export default {
         console.log('false')
         return false
       })
+  },
+
+  getTaskData(endpoint) {
+    return axios.get(endpoint)
   }
 }

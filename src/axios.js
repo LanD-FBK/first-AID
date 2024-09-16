@@ -10,20 +10,18 @@ axiosInstance.interceptors.request.use(
   function (config) {
     const loginStore = useLoginStore()
     const token = loginStore.token
-    if (token) {
+    //adds bearer token header only when calling baseURL APIs
+    if (!String(config.url).includes('www.') && !String(config.url).includes('http'))
       config.headers['Authorization'] = 'Bearer ' + token
-    }
     return config
   },
   function (error) {
-    // Do something with request error
     return Promise.reject(error)
   }
 )
 
 //Response interceptor
 axiosInstance.interceptors.response.use(
-  //Arrow function?
   function (response) {
     const loginStore = useLoginStore()
     if (response.headers['bearer-refreshed'])
@@ -35,7 +33,8 @@ axiosInstance.interceptors.response.use(
     const loginStore = useLoginStore()
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     if (error.response.status == 401) {
-      //Removes expired token (interceptor doesn't send it with the next 'login' request)
+      console.log(error)
+      //Removes expired token
       loginStore.removeBearer()
       dataService.logout()
       return Promise.reject(401)
