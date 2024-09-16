@@ -13,6 +13,7 @@ export default {
 
       //Manage Tasks vars
       dialogTasks: false,
+      loadingSubmitNewTask: false,
       //TODO: add watcher to empty all fields on dialog closure
       dialogNewTask: false,
       validNewTaskData: false,
@@ -24,7 +25,7 @@ export default {
       ],
       taskName: '',
       isNewTaskActive: false,
-      taskLanguageSelection: undefined,
+      selectedTaskLanguage: undefined,
       initialDataTaskSelection: undefined,
       newTurnTaskSelection: undefined,
       newTaskUsers: [],
@@ -186,9 +187,47 @@ export default {
         })
     },
 
+    //Send new task to API
     submitNewTask: function () {
-      //TODO: add loading
+      this.loadingSubmitNewTask = true
+      const self = this
+      let meta = undefined
+      let sendNewTaskRoles = undefined
+      //TODO: Add URL and generation methods to meta
+      dataService
+        .addTaskToProject(
+          this.id,
+          this.taskName,
+          this.selectedInitialDataGenerationMethod,
+          this.selectedNewTurnGenerationMethod,
+          this.selectedTaskLanguage,
+          this.isNewTaskActive,
+          meta,
+          sendNewTaskRoles,
+          this.newTaskUsers,
+          this.newTaskFiles
+        )
+        .then(function (data) {
+          console.log(data)
+        })
     },
+
+    //Add new role to new task
+    addNewRole: function () {
+      this.newTaskRoles.push({
+        name: '',
+        id: '',
+        number: this.newTaskRoles[this.newTaskRoles.length - 1].number + 1
+      })
+      console.log(this.newTaskRoles)
+    },
+
+    //Removes role from new task
+    deleteRole: function (deleteIndex) {
+      this.newTaskRoles.splice(deleteIndex, 1)
+      console.log(this.newTaskRoles)
+    },
+
     editProjectDialogAdminDisplay(userID) {
       if (this.editProjectAdminList.includes(userID)) return 'Admin User'
       return 'Normal User'
@@ -217,6 +256,33 @@ export default {
     },
     isNewTurnSelectionDisabled() {
       if (this.newTurnMethods.length == 0 || this.isNewTurnFormDisabled) return true
+      return false
+    },
+
+    //Check logic
+    isNewTaskRolesDisabled() {
+      if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
+        return true
+      else if (
+        !this.isInitialDataFormDisabled &&
+        this.selectedInitialDataGenerationMethod == undefined
+      )
+        return true
+      else if (!this.isNewTurnFormDisabled && this.selectedNewTurnGenerationMethod == undefined)
+        return true
+      return false
+      /* if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
+        return true
+      else if (
+        (!this.isInitialDataFormDisabled &&
+          this.selectedInitialDataGenerationMethod == undefined) ||
+        (!this.isNewTurnFormDisabled && this.selectedNewTurnGenerationMethod == undefined)
+      )
+        return true
+      return false */
+    },
+    isNewTaskRolesDeleteDisabled() {
+      if (this.newTaskRoles.length <= 2) return true
       return false
     }
   },
@@ -468,7 +534,7 @@ export default {
               <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
                 <v-select
                   label="Language"
-                  v-model="taskLanguageSelection"
+                  v-model="selectedTaskLanguage"
                   :items="newTaskStore.language"
                   item-title="complete"
                   item-value="apiFormat"
@@ -515,6 +581,7 @@ export default {
                   </v-list-item>
                 </v-list>
               </v-col>
+
               <!--Initial Data and New Turn-->
               <v-col cols="6">
                 <v-select
@@ -581,17 +648,36 @@ export default {
                 -->
                 <v-row dense v-for="role in newTaskRoles" :key="role.number">
                   <v-col>
-                    <v-text-field v-model="role.name" label="Speaker Role"></v-text-field>
+                    <v-text-field
+                      v-model="role.id"
+                      :disabled="isNewTaskRolesDisabled"
+                      label="Speaker ID"
+                    ></v-text-field>
                   </v-col>
                   <v-col>
-                    <v-text-field v-model="role.id" label="Speaker ID">
+                    <v-text-field
+                      v-model="role.name"
+                      :disabled="isNewTaskRolesDisabled"
+                      label="Speaker Role"
+                    >
                       <template v-slot:append>
-                        <v-btn icon="mdi-trash-can-outline" variant="tonal" />
+                        <v-btn
+                          icon="mdi-trash-can-outline"
+                          variant="tonal"
+                          @click="deleteRole()"
+                          :disabled="isNewTaskRolesDeleteDisabled"
+                        />
                       </template>
                     </v-text-field>
                   </v-col>
                 </v-row>
-                <v-btn class="mb-4" variant="tonal" text="Add New Role" />
+                <v-btn
+                  class="mb-4"
+                  :disabled="isNewTaskRolesDisabled"
+                  variant="tonal"
+                  text="Add New Role"
+                  @click="addNewRole()"
+                />
               </v-col>
             </v-row>
           </v-card-text>

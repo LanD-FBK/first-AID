@@ -46,6 +46,8 @@ export const useNewTaskStore = defineStore('newTask', {
     language: [
       { complete: 'Italiano', apiFormat: 'it' },
       { complete: 'English', apiFormat: 'en' }
-    ]
+    ],
+    //Minimum number of roles for a new task
+    minimumRoles: 2
   })
 })
