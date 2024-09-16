@@ -297,12 +297,7 @@ export default {
     isNewTaskRolesDisabled() {
       if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
         return true
-      else if (
-        !this.isInitialDataFormDisabled &&
-        this.selectedInitialDataGenerationMethod == undefined
-      )
-        return true
-      else if (!this.isNewTurnFormDisabled && this.selectedNewTurnGenerationMethod == undefined)
+      else if (!this.isInitialDataFormDisabled || !this.isNewTurnFormDisabled)
         return true
       return false
       /* if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
@@ -369,7 +364,7 @@ export default {
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-card>
+        <v-card @click.self="console.log('card')">
           <v-row align="center">
             <v-col cols="12" sm="3" md="6" xl="6" xs="6">
               <v-row class="d-flex justify-left">
@@ -416,13 +411,6 @@ export default {
                   @click="manageTasks()"
                 />
                 <v-btn
-                  color="secondary"
-                  variant="elevated"
-                  prepend-icon="mdi-book-edit-outline"
-                  text="Annotate"
-                  @click="console.log('annotate')"
-                />
-                <v-btn
                   color="error"
                   variant="elevated"
                   prepend-icon="mdi-trash-can-outline"
@@ -448,12 +436,6 @@ export default {
                   variant="elevated"
                   icon="mdi-format-list-checks"
                   @click="manageTasks()"
-                />
-                <v-btn
-                  color="secondary"
-                  variant="elevated"
-                  icon="mdi-book-edit-outline"
-                  @click="console.log('annotate')"
                 />
                 <v-btn
                   color="error"
