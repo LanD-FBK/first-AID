@@ -54,13 +54,13 @@ export default {
       //Roles vars
       newTaskRoles: [
         {
-          name: 'Speaker 1',
-          id: 'speaker_1',
+          name: '',
+          id: '',
           number: 0
         },
         {
-          name: 'Speaker 2',
-          id: 'speaker_2',
+          name: '',
+          id: '',
           number: 1
         }
       ],
@@ -155,8 +155,17 @@ export default {
         .then(function (data) {
           //May need to be changed if APIs change
           for (let item of data.data) {
-            self.initialDataMethods.push(item.generation_method)
-            self.initialDataRoles.push()
+            self.initialDataRoles.push({
+              generationMethod: item.generation_method,
+              roles: item.roles
+            })
+            console.log(self.initialDataRoles)
+            self.initialDataMethods.push({
+              title: item.generation_method,
+              props: {
+                disabled: self.isInitialDataMethodsListItemDisabled(item.generation_method)
+              }
+            })
           }
           self.initialDataButtonLoading = false
         })
@@ -174,9 +183,20 @@ export default {
       dataService
         .getTaskData(this.newTurnEndpoint)
         .then(function (data) {
+          console.log(data.data)
           for (let item of data.data) {
-            self.newTurnMethods.push(item.generation_method)
+            self.newTurnRoles.push({
+              generationMethod: item.generation_method,
+              roles: item.roles
+            })
+            self.newTurnMethods.push({
+              title: item.generation_method,
+              props: {
+                disabled: self.isNewTurnMethodsListItemDisabled(item.generation_method)
+              }
+            })
           }
+          console.log(self.newTurnMethods)
           self.newTurnButtonLoading = false
         })
         .catch(function (error) {
@@ -228,9 +248,23 @@ export default {
       console.log(this.newTaskRoles)
     },
 
-    editProjectDialogAdminDisplay(userID) {
+    editProjectDialogAdminDisplay: function (userID) {
       if (this.editProjectAdminList.includes(userID)) return 'Admin User'
       return 'Normal User'
+    },
+    //Check logic
+    isNewTurnMethodsListItemDisabled: function (generationMethod) {
+      console.log(this.selectedInitialDataGenerationMethod)
+      console.log(generationMethod)
+      if (this.selectedInitialDataGenerationMethod == '') return false
+      else if (this.selectedInitialDataGenerationMethod == generationMethod) return false
+      return true
+    },
+    //Check logic
+    isInitialDataMethodsListItemDisabled: function (generationMethod) {
+      if (this.selectedNewTurnGenerationMethod == '') return false
+      else if (this.selectedNewTurnGenerationMethod != generationMethod) return false
+      return true
     }
   },
   computed: {
@@ -293,7 +327,40 @@ export default {
     dialogUsers(newValue, oldValue) {
       this.editProjectAdminList = []
       this.editProjectUserSelect = []
+    },
+    selectedInitialDataGenerationMethod(newValue, oldValue) {
+      for (let item of this.initialDataRoles) {
+        if (item.generationMethod == newValue) {
+          this.newTaskRoles.splice(0, this.newTaskRoles.length)
+          for (let role of item.roles) {
+            let i = 0
+            this.newTaskRoles.push({
+              name: role.name,
+              id: role.label,
+              number: i
+            })
+            i++
+          }
+        }
+      }
+    },
+    selectedNewTurnGenerationMethod(newValue, oldValue) {
+      for (let item of this.newTurnRoles) {
+        if (item.generationMethod == newValue) {
+          this.newTaskRoles.splice(0, this.newTaskRoles.length)
+          for (let role of item.roles) {
+            let i = 0
+            this.newTaskRoles.push({
+              name: role.name,
+              id: role.label,
+              number: i
+            })
+            i++
+          }
+        }
+      }
     }
+    //TODO: add watcher to dinamically enable/disable generation method select items
   }
 }
 </script>
@@ -642,42 +709,47 @@ export default {
                   :disabled="isNewTurnSelectionDisabled"
                 ></v-select>
               </v-col>
+
+              <!--Roles list-->
               <v-col cols="12">
                 <!--
                 <p class="text-body-1 mt-2">Roles</p>
                 -->
-                <v-row dense v-for="role in newTaskRoles" :key="role.number">
-                  <v-col>
-                    <v-text-field
-                      v-model="role.id"
-                      :disabled="isNewTaskRolesDisabled"
-                      label="Speaker ID"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col>
-                    <v-text-field
-                      v-model="role.name"
-                      :disabled="isNewTaskRolesDisabled"
-                      label="Speaker Role"
-                    >
-                      <template v-slot:append>
-                        <v-btn
-                          icon="mdi-trash-can-outline"
-                          variant="tonal"
-                          @click="deleteRole()"
-                          :disabled="isNewTaskRolesDeleteDisabled"
-                        />
-                      </template>
-                    </v-text-field>
-                  </v-col>
-                </v-row>
-                <v-btn
-                  class="mb-4"
-                  :disabled="isNewTaskRolesDisabled"
-                  variant="tonal"
-                  text="Add New Role"
-                  @click="addNewRole()"
-                />
+                <!--TODO: set max height on container in order to avoid card buttons disappearing-->
+                <v-container fluid max-heigth="300px">
+                  <v-row dense v-for="role in newTaskRoles" :key="role.number">
+                    <v-col>
+                      <v-text-field
+                        v-model="role.id"
+                        :disabled="isNewTaskRolesDisabled"
+                        label="Speaker ID"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col>
+                      <v-text-field
+                        v-model="role.name"
+                        :disabled="isNewTaskRolesDisabled"
+                        label="Speaker Role"
+                      >
+                        <template v-slot:append>
+                          <v-btn
+                            icon="mdi-trash-can-outline"
+                            variant="tonal"
+                            @click="deleteRole()"
+                            :disabled="isNewTaskRolesDeleteDisabled"
+                          />
+                        </template>
+                      </v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-btn
+                    class="mb-4"
+                    :disabled="isNewTaskRolesDisabled"
+                    variant="tonal"
+                    text="Add New Role"
+                    @click="addNewRole()"
+                  />
+                </v-container>
               </v-col>
             </v-row>
           </v-card-text>
