@@ -1,8 +1,12 @@
 <script>
 import dataService from '../dataService'
+import DynamicButton from './dynamic-button.vue'
 import { useNewTaskStore, useVariablesStore } from '@/store'
 
 export default {
+  components: {
+    DynamicButton
+  },
   data() {
     return {
       variablesStore: useVariablesStore(),
@@ -40,17 +44,18 @@ export default {
       initialDataButtonLoading: false,
       initialDataError: false,
       initialDataErrorStatus: '',
-      selectedInitialDataGenerationMethod: '',
+      selectedInitialDataGenerationMethod: undefined,
 
       //New turn vars
       newTurnEndpoint: '',
       newTurnError: false,
       newTurnErrorMessage: '',
       newTurnButtonLoading: false,
-      selectedNewTurnGenerationMethod: '',
+      selectedNewTurnGenerationMethod: undefined,
       newTurnMethods: [],
       newTurnRoles: [],
 
+      dialogDifferentMethodsError: false,
       //Roles vars
       newTaskRoles: [
         {
@@ -163,7 +168,7 @@ export default {
             self.initialDataMethods.push({
               title: item.generation_method,
               props: {
-                disabled: self.isInitialDataMethodsListItemDisabled(item.generation_method)
+                disabled: false
               }
             })
           }
@@ -192,7 +197,7 @@ export default {
             self.newTurnMethods.push({
               title: item.generation_method,
               props: {
-                disabled: self.isNewTurnMethodsListItemDisabled(item.generation_method)
+                disabled: false
               }
             })
           }
@@ -212,7 +217,13 @@ export default {
       this.loadingSubmitNewTask = true
       const self = this
       let meta = undefined
-      let sendNewTaskRoles = undefined
+      let sendNewTaskRoles = []
+      for (let role of this.newTaskRoles) {
+        sendNewTaskRoles.push({
+          label: role.id,
+          name: role.name
+        })
+      }
       //TODO: Add URL and generation methods to meta
       dataService
         .addTaskToProject(
@@ -297,8 +308,7 @@ export default {
     isNewTaskRolesDisabled() {
       if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
         return true
-      else if (!this.isInitialDataFormDisabled || !this.isNewTurnFormDisabled)
-        return true
+      else if (!this.isInitialDataFormDisabled || !this.isNewTurnFormDisabled) return true
       return false
       /* if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
         return true
@@ -324,38 +334,74 @@ export default {
       this.editProjectUserSelect = []
     },
     selectedInitialDataGenerationMethod(newValue, oldValue) {
-      for (let item of this.initialDataRoles) {
-        if (item.generationMethod == newValue) {
-          this.newTaskRoles.splice(0, this.newTaskRoles.length)
-          for (let role of item.roles) {
-            let i = 0
-            this.newTaskRoles.push({
-              name: role.name,
-              id: role.label,
-              number: i
-            })
-            i++
+      if (newValue != undefined) {
+        if (
+          this.selectedNewTurnGenerationMethod == undefined ||
+          newValue == this.selectedNewTurnGenerationMethod
+        ) {
+          for (let item of this.initialDataRoles) {
+            if (item.generationMethod == newValue) {
+              //"Deletes" the 'newTaskRoles' array
+              this.newTaskRoles.splice(0, this.newTaskRoles.length)
+              for (let role of item.roles) {
+                let i = 0
+                this.newTaskRoles.push({
+                  name: role.name,
+                  id: role.label,
+                  number: i
+                })
+                i++
+              }
+            }
           }
+        } else {
+          this.dialogDifferentMethodsError = true
         }
       }
     },
     selectedNewTurnGenerationMethod(newValue, oldValue) {
-      for (let item of this.newTurnRoles) {
-        if (item.generationMethod == newValue) {
-          this.newTaskRoles.splice(0, this.newTaskRoles.length)
-          for (let role of item.roles) {
-            let i = 0
-            this.newTaskRoles.push({
-              name: role.name,
-              id: role.label,
-              number: i
-            })
-            i++
+      if (newValue != undefined) {
+        if (
+          this.selectedInitialDataGenerationMethod == undefined ||
+          this.selectedInitialDataGenerationMethod == newValue
+        ) {
+          for (let item of this.newTurnRoles) {
+            if (item.generationMethod == newValue) {
+              this.newTaskRoles.splice(0, this.newTaskRoles.length)
+              for (let role of item.roles) {
+                let i = 0
+                this.newTaskRoles.push({
+                  name: role.name,
+                  id: role.label,
+                  number: i
+                })
+                i++
+              }
+            }
           }
+        } else {
+          this.dialogDifferentMethodsError = true
         }
       }
+    },
+    dialogDifferentMethodsError(newValue, oldValue) {
+      if (newValue == true) {
+        this.selectedInitialDataGenerationMethod = undefined
+        this.selectedNewTurnGenerationMethod = undefined
+        this.newTaskRoles = [
+          {
+            name: '',
+            id: '',
+            number: 0
+          },
+          {
+            name: '',
+            id: '',
+            number: 1
+          }
+        ]
+      }
     }
-    //TODO: add watcher to dinamically enable/disable generation method select items
   }
 }
 </script>
@@ -364,7 +410,7 @@ export default {
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-card @click.self="console.log('card')">
+        <v-card @click.prevent="console.log('card')">
           <v-row align="center">
             <v-col cols="12" sm="3" md="6" xl="6" xs="6">
               <v-row class="d-flex justify-left">
@@ -388,60 +434,26 @@ export default {
               </v-row>
             </v-col>
             <v-col cols="12" lg="6" sm="9" md="6" xl="6" xs="6">
-              <v-card-actions v-if="!isButton">
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  prepend-icon="mdi-file-document-multiple-outline"
-                  text="Manage Docs"
-                  @click="manageDocs(id)"
+              <v-card-actions>
+                <DynamicButton
+                  :icon="'mdi-file-document-multiple-outline'"
+                  :text="'Manage Docs'"
+                  @click.stop="manageDocs(id)"
                 />
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  prepend-icon="mdi-account-circle-outline"
-                  text="Manage Users"
-                  @click="manageUsers()"
+                <DynamicButton
+                  :icon="'mdi-account-circle-outline'"
+                  :text="'Manage Users'"
+                  @click.stop="manageUsers()"
                 />
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  prepend-icon="mdi-format-list-checks"
-                  text="Manage Tasks"
-                  @click="manageTasks()"
+                <DynamicButton
+                  :icon="'mdi-format-list-checks'"
+                  :text="'Manage Tasks'"
+                  @click.stop="manageTasks()"
                 />
-                <v-btn
-                  color="error"
-                  variant="elevated"
-                  prepend-icon="mdi-trash-can-outline"
-                  text="Delete"
-                  @click="$emit('deleteProject')"
-                />
-              </v-card-actions>
-              <v-card-actions v-else>
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  icon="mdi-file-document-multiple-outline"
-                  @click="manageDocs(id)"
-                />
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  icon="mdi-account-circle-outline"
-                  @click="manageUsers()"
-                />
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  icon="mdi-format-list-checks"
-                  @click="manageTasks()"
-                />
-                <v-btn
-                  color="error"
-                  variant="elevated"
-                  icon="mdi-trash-can-outline"
-                  @click="$emit('deleteProject')"
+                <DynamicButton
+                  :icon="'mdi-trash-can-outline'"
+                  :text="'Delete'"
+                  @click.stop="$emit('deleteProject')"
                 />
               </v-card-actions>
             </v-col>
@@ -740,9 +752,27 @@ export default {
             <v-spacer></v-spacer>
             <v-btn text="Cancel" variant="tonal" @click="dialogNewTask = false" />
             <!--type="submit"-->
-            <v-btn text="Create" variant="tonal" color="primary" />
+            <v-btn
+              text="Create"
+              type="submit"
+              :loading="loadingSubmitNewTask"
+              variant="tonal"
+              color="primary"
+            />
           </v-card-actions>
         </v-form>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="dialogDifferentMethodsError" :max-width="variablesStore.errorMaxWidth">
+      <v-card
+        title="Error!"
+        prepend-icon="mdi-alert-circle"
+        color="error"
+        text="Different Generation Methods are selected!"
+      >
+        <v-card-actions>
+          <v-btn @click="dialogDifferentMethodsError = false" text="Close"></v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
