@@ -41,8 +41,14 @@ export const useVariablesStore = defineStore('variables', {
 
 export const useNewTaskStore = defineStore('newTask', {
   state: () => ({
-    initialData: ['Empty', 'Pre-filled'],
-    newTurn: ['Clean', 'Choice'],
+    initialData: [
+      { complete: 'Empty', apiFormat: 'empty' },
+      { complete: 'Pre-filled', apiFormat: 'pre_compiled' }
+    ],
+    newTurn: [
+      { complete: 'Clean', apiFormat: 'clean' },
+      { complete: 'Choice', apiFormat: 'choice' }
+    ],
     language: [
       { complete: 'Italiano', apiFormat: 'it' },
       { complete: 'English', apiFormat: 'en' }

@@ -20,6 +20,9 @@ export default {
       loadingSubmitNewTask: false,
       //TODO: add watcher to empty all fields on dialog closure
       dialogNewTask: false,
+      snackbarNewTaskSuccess: false,
+      dialogNewTaskError: false,
+      dialogNewTaskErrorMessage: '',
       validNewTaskData: false,
       rulesNewTask: [
         function (value) {
@@ -214,33 +217,72 @@ export default {
 
     //Send new task to API
     submitNewTask: function () {
-      this.loadingSubmitNewTask = true
-      const self = this
-      let meta = undefined
-      let sendNewTaskRoles = []
-      for (let role of this.newTaskRoles) {
-        sendNewTaskRoles.push({
-          label: role.id,
-          name: role.name
-        })
+      if (this.validNewTaskData) {
+        this.loadingSubmitNewTask = true
+        const self = this
+        let meta = {}
+        let sendNewTaskRoles = []
+        for (let role of this.newTaskRoles) {
+          sendNewTaskRoles.push({
+            label: role.id,
+            name: role.name
+          })
+        }
+        if (this.selectedInitialDataGenerationMethod != undefined) {
+          if (this.selectedNewTurnGenerationMethod != undefined) {
+            //Both 'Initial Data' and 'New Turn' call APIs
+            meta = {
+              start_type_endpoint: this.initialDataEndpoint,
+              start_type_api: this.selectedInitialDataGenerationMethod,
+              inside_type_endpoint: this.newTurnEndpoint,
+              inside_type_api: this.selectedNewTurnGenerationMethod
+            }
+          } else {
+            //Only 'Initial Data' calls APIs
+            meta = {
+              start_type_endpoint: this.initialDataEndpoint,
+              start_type_api: this.selectedInitialDataGenerationMethod
+            }
+          }
+        } else if (this.selectedNewTurnGenerationMethod != undefined) {
+          //Only 'New Turn' calls APIs
+          meta = {
+            inside_type_endpoint: this.newTurnEndpoint,
+            inside_type_api: this.selectedNewTurnGenerationMethod
+          }
+        }
+        console.log('starttype: ' + this.initialDataTaskSelection)
+        console.log('insidetype: ' + this.newTurnTaskSelection)
+        console.log(sendNewTaskRoles)
+        //TODO: Add URL and generation methods to meta
+        dataService
+          .addTaskToProject(
+            this.id,
+            this.taskName,
+            this.initialDataTaskSelection,
+            this.newTurnTaskSelection,
+            this.selectedTaskLanguage,
+            this.isNewTaskActive,
+            meta,
+            sendNewTaskRoles,
+            this.newTaskUsers,
+            this.newTaskFiles
+          )
+          .then(function (data) {
+            console.log(data)
+            self.dialogNewTask = false
+            self.snackbarNewTaskSuccess = true
+            self.loadingSubmitNewTask = false
+          })
+          .catch(function (error) {
+            console.log(error)
+            self.dialogNewTaskError = true
+            self.dialogNewTaskErrorMessage = error.message
+            self.loadingSubmitNewTask = false
+          })
+      } else {
+        console.log('no')
       }
-      //TODO: Add URL and generation methods to meta
-      dataService
-        .addTaskToProject(
-          this.id,
-          this.taskName,
-          this.selectedInitialDataGenerationMethod,
-          this.selectedNewTurnGenerationMethod,
-          this.selectedTaskLanguage,
-          this.isNewTaskActive,
-          meta,
-          sendNewTaskRoles,
-          this.newTaskUsers,
-          this.newTaskFiles
-        )
-        .then(function (data) {
-          console.log(data)
-        })
     },
 
     //Add new role to new task
@@ -290,10 +332,11 @@ export default {
       return this.editProjectUserSelect.length === 0 ? true : false
     },
     isInitialDataFormDisabled() {
-      return this.initialDataTaskSelection === 'Pre-filled' ? false : true
+      console.log(this.initialDataTaskSelection)
+      return this.initialDataTaskSelection === 'pre_compiled' ? false : true
     },
     isNewTurnFormDisabled() {
-      return this.newTurnTaskSelection === 'Choice' ? false : true
+      return this.newTurnTaskSelection === 'choice' ? false : true
     },
     isInitialDataSelectionDisabled() {
       if (this.initialDataMethods.length == 0 || this.isInitialDataFormDisabled) return true
@@ -649,6 +692,8 @@ export default {
                   label="Initial Data"
                   v-model="initialDataTaskSelection"
                   :items="newTaskStore.initialData"
+                  item-title="complete"
+                  item-value="apiFormat"
                 ></v-select>
                 <!-- text-field and select are enabled only when initial data is 'pre-filled'-->
                 <v-text-field
@@ -679,6 +724,8 @@ export default {
                   label="New Turn"
                   v-model="newTurnTaskSelection"
                   :items="newTaskStore.newTurn"
+                  item-title="complete"
+                  item-value="apiFormat"
                 ></v-select>
                 <v-text-field
                   v-model="newTurnEndpoint"
@@ -775,5 +822,24 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="dialogNewTaskError" :max-width="variablesStore.errorMaxWidth">
+      <v-card
+        title="Error!"
+        prepend-icon="mdi-alert-circle"
+        color="error"
+        :text="'Error! ' + dialogNewTaskErrorMessage"
+      >
+        <v-card-actions>
+          <v-btn @click="dialogNewTaskError = false" text="Close"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-snackbar v-model="snackbarNewTaskSuccess" timeout="2000"
+      >New Task created successfully!
+      <template v-slot:actions>
+        <v-btn color="blue" variant="text" @click="snackbarNewTaskSuccess = false"> Close </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>

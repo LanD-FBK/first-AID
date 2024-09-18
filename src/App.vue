@@ -418,7 +418,7 @@ export default {
       <v-snackbar v-model="successNewUserSnackbar" timeout="2000"
         >New User created successfully!
         <template v-slot:actions>
-          <v-btn color="blue" variant="text" @click="snackbar = false"> Close </v-btn>
+          <v-btn color="blue" variant="text" @click="successNewUserSnackbar = false"> Close </v-btn>
         </template>
       </v-snackbar>
 
