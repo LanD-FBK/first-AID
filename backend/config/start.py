@@ -16,6 +16,7 @@ from sql.models import User, UserCreate
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def get_middleware():
     useMiddleware = getOption("USE_MIDDLEWARE", ret_type=int)
 
@@ -27,13 +28,14 @@ def get_middleware():
     middleware = [
         Middleware(
             CORSMiddleware,
-            allow_origins = ['*'],
-            allow_methods = ['*'],
-            allow_headers = ['*'],
-            expose_headers = ['access-control-allow-origin'],
+            allow_origins=['*'],
+            allow_methods=['*'],
+            allow_headers=['*'],
+            expose_headers=['access-control-allow-origin'],
         )
     ]
     return middleware
+
 
 def app_init():
     for key in dir(ConfigDefault):

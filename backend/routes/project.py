@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
@@ -6,11 +6,13 @@ from sqlmodel import Session
 import sql.crud as crud
 from routes.common import ListCommons
 from routes.login import get_current_user, user_must_be_admin
+from sql.crud import get_object_by_id
 from sql.database import get_db
-from sql.models import ProjectOutputWithUsers, ProjectCreate, Project, ProjectUserLink
+from sql.models import ProjectOutputWithUsers, ProjectCreate, Project, ProjectUserLink, ProjectOutputWithEverything
 from sql.models import User
 
 router = APIRouter()
+
 
 def get_users_from_project(db: Session, project: ProjectCreate):
     if project.users_list is None or project.users_manage is None:
@@ -26,9 +28,20 @@ def get_users_from_project(db: Session, project: ProjectCreate):
         users.append((user, user_is_admin))
     return users
 
+
 def check_manage_project(db: Session, project_id: int, user: User):
+    db_obj = get_object_by_id(db, project_id, Project)
+    if not db_obj:
+        raise HTTPException(status_code=400, detail=f"Project {project_id} does not exist")
+
+    # If admin is logged, it's ok even if the project is not active ...
     if user.is_admin:
-        return
+        return db_obj
+
+    # ... otherwise it's not possible to do anything on it
+    if not db_obj.is_active:
+        raise HTTPException(status_code=400, detail=f"Project {project_id} is not active")
+
     ret = crud.get_existing_elements(ProjectUserLink) \
         .where(ProjectUserLink.project_id == project_id) \
         .where(ProjectUserLink.user_id == user.id) \
@@ -36,26 +49,41 @@ def check_manage_project(db: Session, project_id: int, user: User):
     if not ret:
         raise HTTPException(status_code=400, detail=f"User {user.username} cannot manage project {project_id}")
 
+    return db_obj
+
+
 @router.get("/")
 async def call_list_projects(
         db: Annotated[Session, Depends(get_db)],
-        user: Annotated[bool, Depends(get_current_user)],
-        commons: Annotated[dict, Depends(ListCommons)],
-    ) -> list[ProjectOutputWithUsers]:
+        user: Annotated[User, Depends(get_current_user)],
+        commons: Annotated[ListCommons, Depends(ListCommons)],
+) -> list[ProjectOutputWithUsers]:
     projects = crud.get_projects(db, skip=commons.skip, limit=commons.limit, user=user)
     return projects
+
 
 @router.post("/", status_code=201)
 async def call_create_project(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         project: ProjectCreate,
-    ) -> ProjectOutputWithUsers:
+) -> ProjectOutputWithUsers:
     try:
         users = get_users_from_project(db, project)
         return crud.create_project(db=db, project=project, users=users)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/{project_id}")
+async def call_get_project(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[bool, Depends(get_current_user)],
+        project_id: int,
+) -> ProjectOutputWithEverything:
+    db_project = check_manage_project(db, project_id, user)
+    return db_project
+
 
 @router.patch("/{project_id}/edit")
 async def call_edit_project(
@@ -63,7 +91,7 @@ async def call_edit_project(
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         project: ProjectCreate,
         project_id: int,
-    ) -> ProjectOutputWithUsers:
+) -> ProjectOutputWithUsers:
     db_project = crud.get_object_by_id(db, obj_id=project_id, obj_type=Project)
     if not db_project:
         raise HTTPException(status_code=400, detail=f"Project {project_id} does not exist")
@@ -73,6 +101,7 @@ async def call_edit_project(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.put("/{project_id}/assignuser")
 async def call_edit_project(
         db: Annotated[Session, Depends(get_db)],
@@ -80,11 +109,12 @@ async def call_edit_project(
         user_id: int,
         user_manage: bool,
         project_id: int,
-    ) -> ProjectOutputWithUsers:
+) -> ProjectOutputWithUsers:
     check_manage_project(db, project_id, user)
     if user_manage and not user.is_admin:
         raise HTTPException(status_code=400, detail=f"Only admin can edit project managers")
     return crud.assign_user_to_project(db, project_id, user_id, user_manage)
+
 
 @router.delete("/{project_id}/revokeuser")
 async def call_edit_project(
@@ -92,7 +122,7 @@ async def call_edit_project(
         user: Annotated[bool, Depends(get_current_user)],
         user_id: int,
         project_id: int,
-    ) -> ProjectOutputWithUsers:
+) -> ProjectOutputWithUsers:
     check_manage_project(db, project_id, user)
     # db_user = crud.get_object_by_id(db, user_id, User)
     is_user_manager = crud.get_existing_elements(ProjectUserLink) \
@@ -103,17 +133,18 @@ async def call_edit_project(
         raise HTTPException(status_code=400, detail=f"Only admin can edit project managers")
     return crud.revoke_user_from_project(db, project_id, user_id)
 
+
 @router.delete("/{project_id}/delete", status_code=204)
 async def call_delete_project(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         project_id: int,
-    ):
+):
     db_project = crud.get_object_by_id(db, obj_id=project_id, obj_type=Project)
     if not db_project:
         raise HTTPException(status_code=400, detail=f"Project {project_id} does not exist")
-    try:
-        crud.delete_project(db=db, db_project=db_project)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
+    crud.delete_project(db=db, db_project=db_project)
+    # try:
+    #     crud.delete_project(db=db, db_project=db_project)
+    # except Exception as e:
+    #     raise HTTPException(status_code=400, detail=str(e))

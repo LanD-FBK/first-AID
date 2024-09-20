@@ -12,22 +12,24 @@ from sql.models import UserOutput, UserCreate
 
 router = APIRouter()
 
+
 @router.get("/")
 async def call_read_users(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         commons: Annotated[dict, Depends(ListCommons)],
         response: Response
-    ) -> list[UserOutput]:
+) -> list[UserOutput]:
     users = crud.get_users(db, skip=commons.skip, limit=commons.limit)
     return users
+
 
 @router.post("/", status_code=201)
 async def call_create_user(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         user: UserCreate,
-    ) -> UserOutput:
+) -> UserOutput:
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -35,14 +37,15 @@ async def call_create_user(
         return crud.create_user(db=db, user=user)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
+
 @router.patch("/{user_id}/edit")
 async def call_edit_user(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         user: UserCreate,
         user_id: int
-    ) -> UserOutput:
+) -> UserOutput:
     db_user = crud.get_user_by_id(db, id=user_id)
     if not db_user:
         raise HTTPException(status_code=400, detail=f"User with id {user_id} does not exist")
@@ -54,24 +57,26 @@ async def call_edit_user(
         return crud.edit_user(db=db, db_user=db_user, user=user)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
+
 @router.patch("/me/changepassword", status_code=204)
 async def call_change_password(
         db: Annotated[Session, Depends(get_db)],
         user: Annotated[bool, Depends(get_current_user)],
         old_password: str,
         new_password: str
-    ):
+):
     if not crud.verify_password(old_password, user.password):
         raise HTTPException(status_code=400, detail="Incorrect password")
     crud.change_password(db=db, db_user=user, new_password=new_password)
-    
+
+
 @router.patch("/{user_id}/changeactivestate")
 async def call_change_active_state(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         user_id: int,
-    ) -> UserOutput:
+) -> UserOutput:
     db_user = crud.get_user_by_id(db, id=user_id)
     if not db_user:
         raise HTTPException(status_code=400, detail=f"User with id {user_id} does not exist")
@@ -81,13 +86,14 @@ async def call_change_active_state(
         return crud.change_active_state(db=db, db_user=db_user)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
+
 @router.delete("/{user_id}/delete", status_code=204)
 async def call_delete(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
         user_id: int,
-    ):
+):
     db_user = crud.get_user_by_id(db, id=user_id)
     if not db_user:
         raise HTTPException(status_code=400, detail=f"User with id {user_id} does not exist")

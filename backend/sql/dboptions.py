@@ -12,6 +12,7 @@ def getOption(key, ret_type=str):
             return None
         return ret_type(f.value)
 
+
 def saveOption(key, value, overwrite=False):
     with Session(engine) as db:
         key_query = Option(id=key, value=value)

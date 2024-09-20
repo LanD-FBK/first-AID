@@ -5,7 +5,7 @@ from sqlmodel import SQLModel
 
 from config.start import app_init, get_middleware
 from mw import MyMiddleware
-from routes import login, user, project, file
+from routes import login, user, project, file, task
 from sql.database import engine
 
 logging.basicConfig(level=logging.INFO)
@@ -17,14 +17,14 @@ SQLModel.metadata.create_all(engine)
 app_init()
 
 app = FastAPI(
-	middleware=get_middleware(),
-	# https://stackoverflow.com/questions/70793174/fastapi-schemahidden-true-not-working-when-trying-to-hide-the-schema-sectio
-	swagger_ui_parameters={"defaultModelsExpandDepth": -1}
-	)
+    middleware=get_middleware(),
+    # https://stackoverflow.com/questions/70793174/fastapi-schemahidden-true-not-working-when-trying-to-hide-the-schema-sectio
+    swagger_ui_parameters={"defaultModelsExpandDepth": -1}
+)
 app.add_middleware(MyMiddleware)
 
 app.include_router(login.router, tags=["Login"])
 app.include_router(user.router, tags=["Users"], prefix="/users")
 app.include_router(project.router, tags=["Projects"], prefix="/projects")
 app.include_router(file.router, tags=["Files"], prefix="/projects/{project_id}/file")
-
+app.include_router(task.router, tags=["Tasks"], prefix="/projects/{project_id}/tasks")

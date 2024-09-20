@@ -32,12 +32,12 @@ class MyMiddleware(BaseHTTPMiddleware):
             except:
                 # TODO jwt.exceptions.DecodeError: Not enough segments
                 pass
-        
+
         # process the request and get the response
         response = await call_next(request)
 
         if access_token:
             response.headers["bearer-refreshed"] = access_token
             response.headers["access-control-expose-headers"] = "bearer-refreshed"
-        
+
         return response

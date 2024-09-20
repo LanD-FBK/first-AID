@@ -1,7 +1,7 @@
 ### Custom default settings
 # SECRET_KEY is created automatically if missing
 
-#@arMQDSZFcvgh72
+# @arMQDSZFcvgh72
 
 class ConfigDefault:
     PASSWORD_LENGTH: int = 13

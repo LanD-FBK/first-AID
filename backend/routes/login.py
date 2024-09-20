@@ -51,6 +51,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     username: Union[str, None] = None
 
@@ -63,6 +64,7 @@ def authenticate_user(db, username: str, password: str):
         return False
     return user
 
+
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -74,10 +76,11 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=getOption("JWT_ALGORITHM"))
     return encoded_jwt
 
+
 async def get_current_user(
         token: Annotated[str, Depends(oauth2_scheme)],
         db: Session = Depends(get_db),
-    ):
+):
     try:
         secret_key = getOption("SECRET_KEY")
         payload = jwt.decode(token, secret_key, algorithms=[getOption("JWT_ALGORITHM")])
@@ -96,8 +99,9 @@ async def get_current_user(
         raise deleted_exception
     return user
 
+
 async def user_must_be_admin(
-    current_user: Annotated[User, Depends(get_current_user)],
+        current_user: Annotated[User, Depends(get_current_user)],
 ):
     if not current_user.is_admin:
         raise only_admin_exception
@@ -106,8 +110,8 @@ async def user_must_be_admin(
 
 @router.post("/token")
 async def call_login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db),
+        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+        db: Session = Depends(get_db),
 ) -> Token:
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -119,4 +123,3 @@ async def call_login_for_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
-
