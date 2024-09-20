@@ -5,3 +5,5 @@ _old
 files
 test.py
 .idea
+.DS_Store
+
