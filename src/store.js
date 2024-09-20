@@ -54,6 +54,16 @@ export const useNewTaskStore = defineStore('newTask', {
       { complete: 'English', apiFormat: 'en' }
     ],
     //Minimum number of roles for a new task
-    minimumRoles: 2
-  })
+    minimumRoles: 2,
+    //v-model for the 'New Task' Dialog
+    dialogNewTask: false
+  }),
+  actions: {
+    openNewTaskDialog() {
+      this.dialogNewTask = true
+    },
+    cloneNewTaskDialog() {
+      this.dialogNewTask = false
+    }
+  }
 })

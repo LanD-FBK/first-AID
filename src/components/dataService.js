@@ -192,7 +192,12 @@ export default {
       })
   },
 
-  getTaskData(endpoint) {
+  getTaskData: function (endpoint) {
     return axios.get(endpoint)
+  },
+
+  //This call only works when there is no ending "slash" symbol
+  getFileContent: function (projectID, fileID) {
+    return axios.get('/projects/' + projectID + '/file/' + fileID + '/content')
   }
 }

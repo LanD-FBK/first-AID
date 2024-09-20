@@ -14,12 +14,12 @@ export default {
       dialogDocs: false,
       dialogUsers: false,
       loadingEditUsers: false,
+      dialogNewTask: false,
 
       //Manage Tasks vars
       dialogTasks: false,
       loadingSubmitNewTask: false,
       //TODO: add watcher to empty all fields on dialog closure
-      dialogNewTask: false,
       snackbarNewTaskSuccess: false,
       dialogNewTaskError: false,
       dialogNewTaskErrorMessage: '',
@@ -251,10 +251,6 @@ export default {
             inside_type_api: this.selectedNewTurnGenerationMethod
           }
         }
-        console.log('starttype: ' + this.initialDataTaskSelection)
-        console.log('insidetype: ' + this.newTurnTaskSelection)
-        console.log(sendNewTaskRoles)
-        //TODO: Add URL and generation methods to meta
         dataService
           .addTaskToProject(
             this.id,
@@ -280,8 +276,6 @@ export default {
             self.dialogNewTaskErrorMessage = error.message
             self.loadingSubmitNewTask = false
           })
-      } else {
-        console.log('no')
       }
     },
 
@@ -453,12 +447,14 @@ export default {
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-card @click.prevent="console.log('card')">
+        <v-card @click.prevent="this.$router.push({
+                      name: 'tasks',
+                      params: { projectID: this.id }
+                    })">
           <v-row align="center">
             <v-col cols="12" sm="3" md="6" xl="6" xs="6">
               <v-row class="d-flex justify-left">
                 <v-col>
-                  <!--Wrong position-->
                   <v-card-title>{{ title }}</v-card-title>
                   <v-card-subtitle>Project ID: {{ id }}</v-card-subtitle>
                   <v-card-text>{{ isActive ? 'Active' : 'Not Active' }}</v-card-text>
