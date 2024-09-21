@@ -218,13 +218,17 @@ class Task(TaskBase, TimestampModel, DeletedModel, table=True):
     files: list["TaskFileLink"] = Relationship(back_populates="task")
 
 
+### Tables - Roles
+
 class ActorCreate(SQLModel):
     # TODO: check format of label
     label: str
     name: str
 
+
 class ActorCreateWithOrd(ActorCreate):
     ord: int
+
 
 class Actor(ActorCreateWithOrd, TimestampModel, DeletedModel, table=True):
     __tablename__: str = "actor"
@@ -238,6 +242,35 @@ class TaskCreate(TaskBase):
     actors_list: list[ActorCreate] = []
     users_list: list[int] = []
     files_list: list[int] = []
+
+
+### Tables - Annotation
+
+class AnnotationOutSimple(SQLModel):
+    parent: int
+    comment: str
+    id: int
+
+
+class AnnotationEdit(SQLModel):
+    annotations: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    comment: str
+
+
+class AnnotationCreate(AnnotationEdit):
+    parent: int = 0
+
+
+class AnnotationOut(AnnotationCreate):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
+class Annotation(AnnotationOut, TimestampModel, DeletedModel, table=True):
+    __tablename__ = "annotation"
+    task_id: int = Field(foreign_key="task.id")
+    task: Task = Relationship()
+    user_id: int = Field(foreign_key="user.id")
+    user: User = Relationship()
 
 
 ### Tables - TaskUserLink

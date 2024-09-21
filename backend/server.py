@@ -5,7 +5,7 @@ from sqlmodel import SQLModel
 
 from config.start import app_init, get_middleware
 from mw import MyMiddleware
-from routes import login, user, project, file, task
+from routes import login, user, project, file, task, annotation
 from sql.database import engine
 
 logging.basicConfig(level=logging.INFO)
@@ -28,3 +28,5 @@ app.include_router(user.router, tags=["Users"], prefix="/users")
 app.include_router(project.router, tags=["Projects"], prefix="/projects")
 app.include_router(file.router, tags=["Files"], prefix="/projects/{project_id}/file")
 app.include_router(task.router, tags=["Tasks"], prefix="/projects/{project_id}/tasks")
+
+app.include_router(annotation.router, tags=["Annotations"], prefix="/projects/{project_id}/tasks/{task_id}/annotations")
