@@ -19,6 +19,11 @@ from sql.models import FileCreate, File, User, FileOutput
 
 router = APIRouter()
 
+def get_file_content(db_obj):
+    files_folder = getOption("SAVE_PATH")
+    file_path = os.path.join(files_folder, db_obj.filename)
+    contents = Path(file_path).read_text()
+    return contents
 
 @router.get("/")
 async def call_project_get_files(
@@ -98,9 +103,7 @@ async def call_project_get_file_content(
         raise HTTPException(status_code=400, detail=f"File {file_id} does not belong to project {project_id}")
     if not db_obj:
         raise HTTPException(status_code=400, detail=f"File {file_id} does not exist")
-    files_folder = getOption("SAVE_PATH")
-    file_path = os.path.join(files_folder, db_obj.filename)
-    contents = Path(file_path).read_text()
+    contents = get_file_content(db_obj)
 
     # with open(save_file, "wb") as buffer:
     #     shutil.copyfileobj(file.file, buffer)

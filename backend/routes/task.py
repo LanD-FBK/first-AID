@@ -1,13 +1,16 @@
+import json
+import urllib
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
+from routes.file import get_file_content
 from routes.login import get_current_user
 from routes.project import check_manage_project
 from sql.crud import get_object_by_id
 from sql.database import get_db
-from sql.models import Task, User, TaskOut, TaskCreate, TaskUserLink, File, TaskFileLink
+from sql.models import Task, User, TaskOut, TaskCreate, TaskUserLink, File, TaskFileLink, Actor
 
 router = APIRouter()
 
@@ -37,21 +40,100 @@ async def call_create_task(
             raise HTTPException(status_code=400, detail=f"User {uid} is not allowed in project {project_id}")
         users.append(uid)
 
-    print(task.actors_list)
-    # TODO: check and insert actors
+    obj_to_add = []
+    file_contents = []
+    file_ids = []
 
     db_task = Task.model_validate(task, update={"project_id": project_id})
-    db.add(db_task)
+    obj_to_add.append(db_task)
+
     if users is not None:
         for user in users:
             db_user = get_object_by_id(db, user, User)
+            if not db_user:
+                raise HTTPException(status_code=404, detail=f"User {user} not found")
             db_obj = TaskUserLink(task=db_task, user=db_user)
-            db.add(db_obj)
+            obj_to_add.append(db_obj)
     if files is not None:
         for file in files:
             db_file = get_object_by_id(db, file, File)
+            if not db_file:
+                raise HTTPException(status_code=400, detail=f"File {file} not found")
+            file_contents.append(get_file_content(db_file))
+            file_ids.append(file)
             db_obj = TaskFileLink(task=db_task, file=db_file)
-            db.add(db_obj)
+            obj_to_add.append(db_obj)
+
+    new_annotation_data = []
+
+    if task.start_type != "empty":
+        if "start_type_url" not in task.meta or not task.meta["start_type_url"]:
+            raise HTTPException(status_code=400, detail=f"Empty start_type_url")
+        if "start_type_method" not in task.meta or not task.meta["start_type_method"]:
+            raise HTTPException(status_code=400, detail=f"Empty start_type_method")
+        allowed_methods = {}
+        url = task.meta['start_type_url']
+        try:
+            contents = urllib.request.urlopen(url).read()
+            api_info = json.loads(contents.decode())
+            for m in api_info:
+                allowed_methods[m['generation_method']] = m['roles']
+            if task.meta['start_type_method'] not in allowed_methods:
+                raise HTTPException(status_code=400, detail=f"Unknown method {task.meta['start_type_method']}")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        roles = allowed_methods[task.meta['start_type_method']]
+        actors_list = []
+        for a in task.actors_list:
+            actors_list.append(a.__dict__)
+        if actors_list != roles:
+            raise HTTPException(status_code=400, detail=f"Invalid list of roles")
+
+        # Get the first dialogue
+        # TODO: get the ground information from interface
+        post_data = {}
+        post_data['generation_mode'] = task.meta['start_type_method']
+        post_data['num_turns'] = 10
+        post_data['documents'] = file_contents
+        post_data['ground_required'] = {"speaker_1": False, "speaker_2": True}
+
+        req = urllib.request.Request(url, json.dumps(post_data).encode(), headers={"Content-Type": "application/json"})
+        urlopen = urllib.request.urlopen(req)
+        response = urlopen.read()
+
+        json_data = json.loads(response.decode())
+        for t in json_data:
+            new_item = {}
+            new_item['speaker'] = t['speaker']
+            new_item['text'] = t['turn_text']
+            new_item['ground'] = []
+            if t['turn_ground_doc'] is not None:
+                new_ground = {}
+                new_ground['text'] = t['turn_ground']
+                new_ground['file_id'] = file_ids[t['turn_ground_doc']]
+                new_ground['offset_start'] = t['ground_offset_start']
+                new_ground['offset_end'] = t['ground_offset_end']
+                new_item['ground'].append(new_ground)
+            new_annotation_data.append(new_item)
+
+    db_task.meta['new_annotation_data'] = new_annotation_data
+
+    # TODO: check and insert actors when inside_type is choice
+
+    actors = set()
+    for a in task.actors_list:
+        if a.name in actors:
+            raise HTTPException(status_code=400, detail=f"Actor {a.name} is duplicated")
+        actors.add(a.name)
+
+    ord = 0
+    for a in task.actors_list:
+        db_actor = Actor(**a.__dict__, task=db_task, ord=ord)
+        ord += 1
+        db.add(db_actor)
+
+    for o in obj_to_add:
+        db.add(o)
 
     db.commit()
     db.refresh(db_task)

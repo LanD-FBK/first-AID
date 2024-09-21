@@ -5,7 +5,6 @@ from typing import Optional
 import sqlalchemy as sa
 from pydantic import ConfigDict
 from pydantic import EmailStr
-from pydantic.v1 import BaseModel
 from sqlalchemy import Column, JSON, Enum
 from sqlalchemy.orm import ORMExecuteState, with_loader_criteria
 from sqlmodel import SQLModel, Field, UniqueConstraint, Relationship
@@ -200,7 +199,8 @@ class TaskOutSimple(SQLModel):
 class TaskOut(TaskBase):
     users: list["TaskUserLinkOutputWithUser"] = []
     files: list["TaskFileLinkOutputWithFile"] = []
-    actors: list["ActorCreate"] = []
+    actors: list["ActorCreateWithOrd"] = []
+    id: int
 
 
 class TaskRequest(TaskBase):
@@ -223,8 +223,10 @@ class ActorCreate(SQLModel):
     label: str
     name: str
 
+class ActorCreateWithOrd(ActorCreate):
+    ord: int
 
-class Actor(ActorCreate, TimestampModel, DeletedModel, table=True):
+class Actor(ActorCreateWithOrd, TimestampModel, DeletedModel, table=True):
     __tablename__: str = "actor"
     id: Optional[int] = Field(default=None, primary_key=True)
     task_id: int = Field(foreign_key="task.id")
