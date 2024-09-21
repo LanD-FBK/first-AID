@@ -88,7 +88,7 @@ async def call_change_active_state(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{user_id}/delete", status_code=204)
+@router.delete("/{user_id}", status_code=204)
 async def call_delete(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],

@@ -153,10 +153,60 @@ async def call_task_info(
         db: Annotated[Session, Depends(get_db)],
         user: Annotated[User, Depends(get_current_user)],
         project_id: int,
-        task_id: int,
+        task_id: int
 ) -> TaskOut:
     db_task = get_object_by_id(db, task_id, Task)
     if db_task.project_id != project_id:
         raise HTTPException(status_code=400, detail=f"Task {task_id} does not belong to project {project_id}")
     db_project = check_manage_project(db, db_task.project_id, user)
     return db_task
+
+
+@router.patch("/{task_id}/deactivate")
+async def deactivate_task(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        task_id: int
+) -> TaskOut:
+    # TODO: check stuff
+    db_task = get_object_by_id(db, task_id, Task)
+    if db_task.project_id != project_id:
+        raise HTTPException(status_code=400, detail=f"Task {task_id} does not belong to project {project_id}")
+    db_task.is_active = False
+    db.add(db_task)
+    db.close()
+    db.refresh(db_task)
+    return db_task
+
+
+@router.patch("/{task_id}/activate")
+async def deactivate_task(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        task_id: int
+) -> TaskOut:
+    # TODO: check stuff
+    db_task = get_object_by_id(db, task_id, Task)
+    if db_task.project_id != project_id:
+        raise HTTPException(status_code=400, detail=f"Task {task_id} does not belong to project {project_id}")
+    db_task.is_active = True
+    db.add(db_task)
+    db.close()
+    db.refresh(db_task)
+    return db_task
+
+
+@router.delete("/{task_id}", status_code=204)
+async def delete_task(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        task_id: int
+):
+    # TODO: check stuff
+    db_task = get_object_by_id(db, task_id, Task)
+    db_task.is_deleted = True
+    db.add(db_task)
+    db.commit()

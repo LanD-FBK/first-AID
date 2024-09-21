@@ -134,7 +134,7 @@ async def call_edit_project(
     return crud.revoke_user_from_project(db, project_id, user_id)
 
 
-@router.delete("/{project_id}/delete", status_code=204)
+@router.delete("/{project_id}", status_code=204)
 async def call_delete_project(
         db: Annotated[Session, Depends(get_db)],
         is_admin: Annotated[bool, Depends(user_must_be_admin)],
