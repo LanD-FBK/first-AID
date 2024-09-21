@@ -91,9 +91,61 @@ async def call_edit_annotation(
 ) -> AnnotationOut:
     # see comments above
     db_annotation = get_object_by_id(db, annotation_id, Annotation)
+    if db_annotation.closed:
+        raise HTTPException(status_code=400, detail=f"Annotation {annotation_id} is already closed")
 
     annotation_data = annotation.model_dump(exclude_unset=True)
     db_annotation.sqlmodel_update(annotation_data)
+    db.add(db_annotation)
+    db.commit()
+    db.refresh(db_annotation)
+
+    return db_annotation
+
+
+
+@router.delete("/{annotation_id}", status_code=204)
+async def call_delete_annotation(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        task_id: int,
+        annotation_id: int
+):
+    # see comments above
+    db_annotation = get_object_by_id(db, annotation_id, Annotation)
+    db_annotation.is_deleted = True
+    db.add(db_annotation)
+    db.commit()
+
+@router.patch("/{annotation_id}/close")
+async def call_close_annotation(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        task_id: int,
+        annotation_id: int
+) -> AnnotationOut:
+    # see comments above
+    db_annotation = get_object_by_id(db, annotation_id, Annotation)
+    db_annotation.closed = True
+    db.add(db_annotation)
+    db.commit()
+    db.refresh(db_annotation)
+
+    return db_annotation
+
+@router.patch("/{annotation_id}/reopen")
+async def call_close_annotation(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        task_id: int,
+        annotation_id: int
+) -> AnnotationOut:
+    # see comments above
+    db_annotation = get_object_by_id(db, annotation_id, Annotation)
+    db_annotation.closed = False
     db.add(db_annotation)
     db.commit()
     db.refresh(db_annotation)

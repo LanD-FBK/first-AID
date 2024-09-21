@@ -250,6 +250,7 @@ class AnnotationOutSimple(SQLModel):
     parent: int
     comment: str
     id: int
+    closed: bool
 
 
 class AnnotationEdit(SQLModel):
@@ -263,6 +264,7 @@ class AnnotationCreate(AnnotationEdit):
 
 class AnnotationOut(AnnotationCreate):
     id: Optional[int] = Field(default=None, primary_key=True)
+    closed: bool = False
 
 
 class Annotation(AnnotationOut, TimestampModel, DeletedModel, table=True):
