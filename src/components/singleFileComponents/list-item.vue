@@ -232,16 +232,16 @@ export default {
           if (this.selectedNewTurnGenerationMethod != undefined) {
             //Both 'Initial Data' and 'New Turn' call APIs
             meta = {
-              start_type_endpoint: this.initialDataEndpoint,
-              start_type_api: this.selectedInitialDataGenerationMethod,
+              start_type_url: this.initialDataEndpoint,
+              start_type_method: this.selectedInitialDataGenerationMethod,
               inside_type_endpoint: this.newTurnEndpoint,
               inside_type_api: this.selectedNewTurnGenerationMethod
             }
           } else {
             //Only 'Initial Data' calls APIs
             meta = {
-              start_type_endpoint: this.initialDataEndpoint,
-              start_type_api: this.selectedInitialDataGenerationMethod
+              start_type_url: this.initialDataEndpoint,
+              start_type_method: this.selectedInitialDataGenerationMethod
             }
           }
         } else if (this.selectedNewTurnGenerationMethod != undefined) {

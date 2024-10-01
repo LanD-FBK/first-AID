@@ -182,11 +182,11 @@ export default {
     axios
       .get('/users/')
       .then(function () {
-        console.log('true')
+        // console.log('true')
         return true
       })
       .catch(function () {
-        console.log('false')
+        // console.log('false')
         return false
       })
   },
