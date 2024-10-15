@@ -3,10 +3,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import login from '@/components/login-page.vue'
 import projects from '@/components/projects-list.vue'
 import changePassword from '@/components/change-password.vue'
-import annotation from '@/components/annotation-interface.vue'
 import tasks from '@/components/task-list.vue'
 import dataService from '@/components/dataService'
-// import test from '@/components/test.vue'
+import test from '@/components/test.vue'
+import annotationInterface from '@/components/annotation-interface.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,7 +29,7 @@ const router = createRouter({
     {
       path: '/projects/:projectID/tasks/:taskID/annotate',
       name: 'annotation',
-      component: annotation
+      component: annotationInterface
     },
     {
       path: '/projects/:projectID/tasks/',

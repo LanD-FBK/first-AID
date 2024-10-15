@@ -2,9 +2,10 @@
 import dataService from './dataService'
 import highlightable from '@/components/highlight-table.vue'
 import { nextTick } from 'vue'
+import { Pane, Splitpanes } from 'splitpanes'
 
 export default {
-  components: { highlightable },
+  components: { highlightable, Splitpanes, Pane },
   data() {
     return {
       projectID: 0,
@@ -71,6 +72,7 @@ export default {
     rolesForSelect: function() {
       let newList = []
       for (let i in this.actors) {
+        // use base-color
         newList.push({
           'title': this.actors[i].name,
           'value': this.actors[i].label
@@ -80,6 +82,18 @@ export default {
     }
   },
   methods: {
+    scrollToPos: function() {
+      const selection = window.getSelection()
+      let top = selection.getRangeAt(0).getBoundingClientRect().top
+      let height = selection.getRangeAt(0).getBoundingClientRect().height
+      let preOffset = document.getElementById('file-content').offsetTop
+      let winHeight = window.innerHeight
+
+      if (top < preOffset || top > winHeight - height) {
+        let to = document.getElementById('high-file-content').scrollTop - (preOffset - top)
+        document.getElementById('high-file-content').scrollTo({ 'top': to, behavior: 'smooth' })
+      }
+    },
     onLink: function(text, offset_start, offset_end) {
       let newGround = {
         'text': text,
@@ -108,8 +122,7 @@ export default {
       let chosenActor = undefined
       if (leave) {
         chosenActor = s
-      }
-      else {
+      } else {
         let limit = 2
         let count = 0
         let previous = undefined
@@ -133,14 +146,13 @@ export default {
       }
       if (this.annotation_data.length > 0) {
         this.annotation_data.splice(replaceIndex, 0, {
-          "speaker": chosenActor, "text": "", ground: []
+          'speaker': chosenActor, 'text': '', ground: []
         })
 
-      }
-      else {
+      } else {
         this.annotation_data = []
         this.annotation_data.push({
-          "speaker": chosenActor, "text": "", ground: []
+          'speaker': chosenActor, 'text': '', ground: []
         })
 
       }
@@ -166,6 +178,7 @@ export default {
           range.setEnd(referenceNode, vueThis.toBeSelected.offset_end)
           selection.removeAllRanges()
           selection.addRange(range)
+          vueThis.scrollToPos()
 
           vueThis.toBeSelected = undefined
         }
@@ -196,53 +209,58 @@ export default {
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="4" id="pre-col">
-        <p class="text-h4 ma-2">Files</p>
-        <v-select :items="filesForSelect" :item-props="true" v-model="selectedFile"
-                  @update:model-value="loadFile"></v-select>
-        <highlightable v-if="selectedFile && !loadingFile"
-                       @link="onLink"
-        >
-          <pre id="file-content">{{ fileContent }}</pre>
-        </highlightable>
-        <v-skeleton-loader type="paragraph" v-if="loadingFile"></v-skeleton-loader>
-      </v-col>
-      <v-divider vertical></v-divider>
-      <v-col cols="8">
+  <splitpanes class="default-theme">
+    <pane min-size="20" class="file-pane" size="35">
+      <p class="text-h4 ma-2">Files</p>
+      <v-select :items="filesForSelect" :item-props="true" v-model="selectedFile"
+                @update:model-value="loadFile"></v-select>
+      <highlightable v-if="selectedFile && !loadingFile"
+                     @link="onLink" id="high-file-content"
+      >
+        <pre id="file-content">{{ fileContent }}</pre>
+      </highlightable>
+      <v-skeleton-loader id="file-loader" type="paragraph" v-if="loadingFile"></v-skeleton-loader>
+      <div v-if="!selectedFile || loadingFile" class="empty-div">
+        &nbsp;
+      </div>
+    </pane>
+    <pane class="dialogue-pane">
+      <v-container fluid class="dialogue-div">
         <v-row>
-          <v-col cols="6">
+          <v-col cols="7" xl="8">
             <p class="text-h4 ma-2 text-center">Dialog</p>
-            <div class="d-flex justify-center">
-              <v-btn icon="mdi-plus" @click="addRound(-1)" />
-            </div>
           </v-col>
           <v-divider vertical></v-divider>
-          <v-col cols="6">
+          <v-col cols="5" xl="4">
             <p class="text-h4 ma-2 text-center">Ground</p>
           </v-col>
         </v-row>
         <v-row v-for="(round, index) in annotation_data" :key="index"
                :class="{'selected-row': selectedRound === index}"
                @click="selectedRound = index">
-          <v-col cols="6">
+          <v-col cols="7" xl="8">
             <v-row>
               <v-col>
-                <v-select :items="rolesForSelect" :item-props="true" v-model="round['speaker']"></v-select>
+                <v-select :items="rolesForSelect" :item-props="true" v-model="round['speaker']">
+                  <template #prepend>
+                    <v-btn icon="" class="ma-1" @click="addRound(index - 1)">
+                      <v-icon class="icon-up"></v-icon>
+                    </v-btn>
+                    <v-btn icon="" class="ma-1" @click="addRound(index)">
+                      <v-icon class="icon-down"></v-icon>
+                    </v-btn>
+                  </template>
+                  <template #append>
+                    <v-btn color="red" class="ma-1" icon="mdi-trash-can-outline" @click="deleteRound(index)" />
+                  </template>
+                </v-select>
                 <v-textarea v-model="round['text']" @focus="selectedRound = index">
                 </v-textarea>
-                <div class="d-flex justify-center">
-                  <v-btn class="ma-1" icon="mdi-link-variant-plus" readonly="readonly"
-                         :class="{'bg-deep-orange': selectedRound === index}" />
-                  <v-btn class="ma-1" icon="mdi-trash-can-outline" @click="deleteRound(index)" />
-                  <v-btn class="ma-1" icon="mdi-plus" @click="addRound(index)" />
-                </div>
               </v-col>
             </v-row>
           </v-col>
           <v-divider vertical></v-divider>
-          <v-col cols="6">
+          <v-col cols="5" xl="4">
             <v-card v-if="round.ground.length > 0">
               <v-list class="ground-list">
                 <v-list-item v-for="(g, gindex) in round.ground" :key="gindex" :title="files[g.file_id].name"
@@ -260,18 +278,27 @@ export default {
             </v-card>
           </v-col>
         </v-row>
-      </v-col>
-    </v-row>
-  </v-container>
+      </v-container>
+    </pane>
+  </splitpanes>
 </template>
 
 <style>
 
+.icon-up {
+  background-image: url("/plus_up.svg");
+}
+
+.icon-down {
+  background-image: url("/plus_down.svg");
+}
+
 .selected-row {
-  background-color: #eee;
+  background-color: #fdd;
   position: relative;
 }
 
+/*
 div.selected-row-label {
   position: absolute;
   bottom: 5px;
@@ -281,6 +308,7 @@ div.selected-row-label {
   color: white;
   padding: 2px 5px;
 }
+*/
 
 .ground-list .v-list-item-title {
   font-size: .8em;
@@ -293,6 +321,30 @@ div.selected-row-label {
   /*  overflow-y: auto;
     height: 100%;
     flex-grow: 1;*/
+}
+
+.file-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-div {
+  height: 100%;
+}
+
+#high-file-content {
+  flex: 1 1 auto;
+  overflow: auto;
+  height: 100%;
+}
+
+.splitpanes__pane {
+  padding: 10px;
+}
+
+.dialogue-div {
+  overflow: auto;
+  height: 100%;
 }
 
 /*#pre-col {
