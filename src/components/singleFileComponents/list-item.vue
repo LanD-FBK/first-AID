@@ -64,11 +64,13 @@ export default {
         {
           name: '',
           id: '',
+          ground: false,
           number: 0
         },
         {
           name: '',
           id: '',
+          ground: true,
           number: 1
         }
       ],
@@ -225,7 +227,8 @@ export default {
         for (let role of this.newTaskRoles) {
           sendNewTaskRoles.push({
             label: role.id,
-            name: role.name
+            name: role.name,
+            ground: role.ground
           })
         }
         if (this.selectedInitialDataGenerationMethod != undefined) {
@@ -385,6 +388,7 @@ export default {
                 this.newTaskRoles.push({
                   name: role.name,
                   id: role.label,
+                  ground: role.ground,
                   number: i
                 })
                 i++
@@ -410,6 +414,7 @@ export default {
                 this.newTaskRoles.push({
                   name: role.name,
                   id: role.label,
+                  ground: role.ground,
                   number: i
                 })
                 i++
@@ -429,11 +434,13 @@ export default {
           {
             name: '',
             id: '',
+            ground: false,
             number: 0
           },
           {
             name: '',
             id: '',
+            ground: true,
             number: 1
           }
         ]
@@ -760,7 +767,21 @@ export default {
                         v-model="role.id"
                         :disabled="isNewTaskRolesDisabled"
                         label="Speaker ID"
-                      ></v-text-field>
+                      >
+                        <template v-slot:prepend>
+                          <v-tooltip text="Speaker has ground">
+                            <template v-slot:activator="{ props }">
+                              <v-btn
+                                v-bind="props"
+                                :icon="role.ground ? 'mdi-file-document-check-outline' : 'mdi-file-document-remove-outline'"
+                                :color="role.ground ? 'primary' : ''"
+                                @click="role.ground = !role.ground"
+                                :disabled="isNewTaskRolesDisabled"
+                              />
+                            </template>
+                          </v-tooltip>
+                        </template>
+                      </v-text-field>
                     </v-col>
                     <v-col>
                       <v-text-field
