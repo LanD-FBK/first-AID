@@ -126,9 +126,9 @@ export default {
       console.log(form)
     }
     return axios.post(
-      '/projects/' + projectID + '/file',
+      '/projects/' + projectID + '/file/',
       {
-        //TODO
+        form
       },
       {
         headers: {

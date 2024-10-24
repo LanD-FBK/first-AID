@@ -75,6 +75,7 @@ export default {
 
       files: undefined,
       uploadedFiles: undefined,
+      isUploadDocsDoneButtonEnabled: true,
 
       dialogAddUserToProject: false,
       editProjectAdminList: [],
@@ -113,7 +114,7 @@ export default {
         .editProject(this.id, this.title, this.isActive, submitUserList, submitAdminList)
         .then(function (data) {
           self.loadingEditUsers = false
-          console.log('done')
+          self.dialogUsers = false
         })
         .catch(function (error) {
           //Gestione errore
@@ -123,6 +124,14 @@ export default {
       this.dialogDocs = true
     },
 
+
+    testNewDoc: function(){
+      let files = document.getElementById('uploadFiles').files
+      console.log(files)
+      dataService.uploadFiles(this.id, files).then(function(data){
+        console.log(data)
+      })
+    },
     //Document handling
     //Not working
     addDocuments: function () {
@@ -130,6 +139,7 @@ export default {
       const self = this
       dataService.uploadFiles(this.id, this.uploadedFiles).then(function (data) {
         console.log(data)
+        self.isUploadDocsDoneButtonEnabled = false
       })
     },
     removeDocument: function (documentID) {
@@ -396,6 +406,16 @@ export default {
         }
       }
     },
+    initialDataTaskSelection(newValue, oldValue){
+      if(newValue == 'empty' && oldValue !== undefined){
+        console.log('watcher empty')
+        for (let role of this.newTaskRoles){
+          role.id = ''
+          role.name = ''
+        }
+        this.initialDataEndpoint = ''
+      }
+    },
     selectedNewTurnGenerationMethod(newValue, oldValue) {
       if (newValue != undefined) {
         if (
@@ -456,9 +476,7 @@ export default {
               <v-row class="d-flex justify-left">
                 <v-col>
                   <v-card-title>{{ title }}</v-card-title>
-                  <v-card-subtitle>Project ID: {{ id }}</v-card-subtitle>
-                  <v-card-text>{{ isActive ? 'Active' : 'Not Active' }}</v-card-text>
-                  <v-card-text>{{ isButton }}</v-card-text>
+                  <v-card-subtitle>Project ID: {{ id }}. Project {{ isActive ? 'Active' : 'Inactive' }}</v-card-subtitle>
                 </v-col>
                 <!--
                 <v-col>
@@ -527,21 +545,19 @@ export default {
               </template>
             </v-list-item>
           </v-list>
-
-          <v-file-input
-            v-model="uploadedFiles"
-            label="Upload new Files"
+          <input
+          type="file"
             multiple
-            @change="console.log('uploadedFiles')"
+            id="uploadFiles"
+            @change="testNewDoc()"
             class="ma-2"
           >
-          </v-file-input>
+          </input>
         </v-card-text>
         <v-card-actions>
-          <!--
-          <v-btn @click="addDocuments()">Cancel</v-btn>
-          -->
-          <v-btn color="primary" variant="flat" @click="console.log(uploadedFiles)">Upload</v-btn>
+          <v-btn @click="dialogDocs = false">Cancel</v-btn>
+          <v-btn color="primary" variant="outlined" @click="console.log(uploadedFiles)">Upload</v-btn>
+          <v-btn color="primary" variant="flat" @click="dialogDocs = false" :disabled="isUploadDocsDoneButtonEnabled">Done</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
