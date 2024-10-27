@@ -43,7 +43,7 @@ export default {
         })
         .catch(function (error) {
           self.dialogProjectDeletionError = true
-          self.projectDeletionErrorMessage = error.message
+          self.projectDeletionErrorMessage = String(error.message + ": " + error.response.statusText)
         })
     }
   }

@@ -130,10 +130,9 @@ export default {
     testNewDoc: function(){
       let files = document.getElementById('uploadFiles').files
       console.log(files)
-      dataService.uploadFiles(this.id, files).then(function(data){
-        console.log(data)
-      })
+      dataService.uploadFiles(this.id, files)
     },
+    
     //Document handling
     //Not working
     addDocuments: function () {
@@ -193,7 +192,7 @@ export default {
           console.log(error)
           self.initialDataButtonLoading = false
           self.initialDataError = true
-          self.initialDataErrorStatus = error.message
+          self.initialDataErrorStatus = String(error.message + ": " + error.response.statusText)
         })
     },
     //New turn Data retrieval and handling
@@ -223,7 +222,7 @@ export default {
           console.log(error)
           self.newTurnButtonLoading = false
           self.newTurnError = true
-          self.newTurnErrorMessage = error.message
+          self.newTurnErrorMessage = String(error.message + ": " + error.response.statusText)
         })
     },
 
@@ -286,7 +285,7 @@ export default {
           .catch(function (error) {
             console.log(error)
             self.dialogNewTaskError = true
-            self.dialogNewTaskErrorMessage = error.message
+            self.dialogNewTaskErrorMessage = String(error.message + ": " + error.response.statusText)
             self.loadingSubmitNewTask = false
           })
       }
@@ -556,14 +555,13 @@ export default {
           type="file"
             multiple
             id="uploadFiles"
-            @change="testNewDoc()"
             class="ma-2"
           >
           </input>
         </v-card-text>
         <v-card-actions>
           <v-btn @click="dialogDocs = false">Cancel</v-btn>
-          <v-btn color="primary" variant="outlined" @click="console.log(uploadedFiles)">Upload</v-btn>
+          <v-btn color="primary" variant="outlined" @click="testNewDoc()">Upload</v-btn>
           <v-btn color="primary" variant="flat" @click="dialogDocs = false" :disabled="isUploadDocsDoneButtonEnabled">Done</v-btn>
         </v-card-actions>
       </v-card>
