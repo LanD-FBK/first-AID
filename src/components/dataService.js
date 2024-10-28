@@ -125,17 +125,11 @@ export default {
       form.append('files', file)
       console.log(form)
     }
-    return axios.post(
-      '/projects/' + projectID + '/file/',
-      {
-        form
-      },
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }
-    )
+    return axios({
+      method: 'post',
+      url: '/projects/' + projectID + '/file/',
+      data: form,
+  })
   },
 
   deleteProjectFiles: function (projectID, documentID) {
