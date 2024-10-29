@@ -5,7 +5,6 @@ import projects from '@/components/projects-list.vue'
 import changePassword from '@/components/change-password.vue'
 import tasks from '@/components/task-list.vue'
 import dataService from '@/components/dataService'
-import test from '@/components/test.vue'
 import annotationInterface from '@/components/annotation-interface.vue'
 
 const router = createRouter({

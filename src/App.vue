@@ -115,7 +115,7 @@ export default {
           })
           .catch(function (error) {
             self.errorDialog = true
-            self.errorUserDialogText = error.message
+            self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
           })
       }
     },
@@ -144,7 +144,7 @@ export default {
             })
             .catch(function (error) {
               self.errorDialog = true
-              self.errorUserDialogText = error.message
+              self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
               self.loadingCreateUser = false
               //Also clear all fields? Maybe watch() can be used?
             })
@@ -183,7 +183,7 @@ export default {
             })
             .catch(function (error) {
               self.errorDialog = true
-              self.errorUserDialogText = error.message
+              self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
               console.log(error)
             })
         } else {
@@ -218,7 +218,7 @@ export default {
         })
         .catch(function (error) {
           self.errorDialog = true
-          self.errorUserDialogText = error.message
+          self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
         })
     }
   },

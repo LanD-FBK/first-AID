@@ -22,8 +22,7 @@ export default{
               <v-row class="d-flex justify-left">
                 <v-col>
                   <v-card-title>{{ title }}</v-card-title>
-                  <v-card-subtitle>Task ID: {{ taskID }}</v-card-subtitle>
-                  <v-card-text>{{ isActive ? 'Active' : 'Not Active' }}</v-card-text>
+                  <v-card-subtitle>Task ID: {{ taskID }}. Task {{ isActive ? 'Active' : 'not Active' }}</v-card-subtitle>
                 </v-col>
               </v-row>
             </v-col>
