@@ -1,0 +1,8 @@
+bcrypt==4.2.0
+fastapi==0.114.1
+sqlmodel==0.0.22
+uvicorn==0.30.6
+email_validator==2.2.0
+pydantic-settings==2.5.2
+PyJWT==2.9.0
+python-multipart==0.0.9
