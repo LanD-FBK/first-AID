@@ -42,8 +42,8 @@ async def call_create_annotation(
     if db_task.project_id != project_id:
         raise HTTPException(status_code=400, detail=f"Inconsistence between task {task_id} and project {project_id}")
 
-    if not annotation.comment:
-        raise HTTPException(status_code=400, detail=f"Please provide a comment for annotation")
+    # if not annotation.comment:
+    #     raise HTTPException(status_code=400, detail=f"Please provide a comment for annotation")
     # TODO: check JSON
 
     if annotation.parent != 0:

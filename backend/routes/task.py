@@ -93,7 +93,7 @@ async def call_create_task(
         # TODO: get the ground information from interface
         post_data = {}
         post_data['generation_mode'] = task.meta['start_type_method']
-        post_data['num_turns'] = 10
+        # post_data['num_turns'] = 10
         post_data['documents'] = file_contents
         post_data['ground_required'] = {"speaker_1": False, "speaker_2": True}
 
@@ -107,12 +107,12 @@ async def call_create_task(
             new_item['speaker'] = t['speaker']
             new_item['text'] = t['turn_text']
             new_item['ground'] = []
-            if t['turn_ground_doc'] is not None:
+            for g in t['ground']:
                 new_ground = {}
-                new_ground['text'] = t['turn_ground']
-                new_ground['file_id'] = file_ids[t['turn_ground_doc']]
-                new_ground['offset_start'] = t['ground_offset_start']
-                new_ground['offset_end'] = t['ground_offset_end']
+                new_ground['text'] = g['turn_ground']
+                new_ground['file_id'] = file_ids[g['turn_ground_doc']]
+                new_ground['offset_start'] = g['ground_offset_start']
+                new_ground['offset_end'] = g['ground_offset_end']
                 new_item['ground'].append(new_ground)
             new_annotation_data.append(new_item)
 

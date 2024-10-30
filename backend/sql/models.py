@@ -194,6 +194,7 @@ class TaskOutSimple(SQLModel):
     name: str
     is_active: bool
     id: int
+    annotations: list["AnnotationOutSimple"] = []
 
 
 class TaskOut(TaskBase):
@@ -216,6 +217,7 @@ class Task(TaskBase, TimestampModel, DeletedModel, table=True):
     actors: list["Actor"] = Relationship(back_populates="task")
     users: list["TaskUserLink"] = Relationship(back_populates="task")
     files: list["TaskFileLink"] = Relationship(back_populates="task")
+    annotations: list["Annotation"] = Relationship(back_populates="task")
 
 
 ### Tables - Roles
@@ -251,11 +253,12 @@ class AnnotationOutSimple(SQLModel):
     comment: str
     id: int
     closed: bool
+    user: UserOutput
 
 
 class AnnotationEdit(SQLModel):
     annotations: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    comment: str
+    comment: str = ""
 
 
 class AnnotationCreate(AnnotationEdit):
@@ -273,6 +276,7 @@ class Annotation(AnnotationOut, TimestampModel, DeletedModel, table=True):
     task: Task = Relationship()
     user_id: int = Field(foreign_key="user.id")
     user: User = Relationship()
+    tasks: list['Task'] = Relationship(back_populates="annotations", sa_relationship_kwargs={"viewonly": True})
 
 
 ### Tables - TaskUserLink
