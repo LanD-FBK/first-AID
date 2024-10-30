@@ -7,6 +7,7 @@ export default {
   components: {
     DynamicButton
   },
+  inject:['newTaskStatus'],
   data() {
     return {
       variablesStore: useVariablesStore(),
@@ -14,7 +15,7 @@ export default {
       dialogDocs: false,
       dialogUsers: false,
       loadingEditUsers: false,
-      dialogNewTask: false,
+      dialogNewTask: this.newTaskStatus.isDialogActive,
 
       //Manage Tasks vars
       dialogTasks: false,
@@ -161,7 +162,13 @@ export default {
 
     //Manage Tasks funcs
     manageTasks: function () {
+      this.dialogTasks = true
+    },
+
+    openNewTask: function(){
       this.dialogNewTask = true
+      this.newTaskStatus.users = this.users
+      this.newTaskStatus.files = this.files 
     },
 
     //Consider merge in one function
@@ -637,240 +644,9 @@ export default {
           </v-list-item>
         </v-list>
         <v-card-actions>
-          <v-btn color="primary" variant="elevated" text="Add New" />
+          <v-btn color="primary" variant="elevated" @click="newTaskStatus.isDialogActive = true" text="Add New" />
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!--New Task Dialog-->
-    <v-dialog v-model="dialogNewTask" max-width="90%">
-      <v-card title="Add New Task" prepend-icon="mdi-file-document-plus-outline">
-        <v-form v-model="validNewTaskData" :rules="rulesNewTask" @submit.prevent="submitNewTask">
-          <v-card-text>
-            <v-row dense>
-              <v-col cols="12" md="8" sm="8">
-                <v-text-field label="Task Name" required v-model="taskName" :rules="rulesNewTask" />
-              </v-col>
-
-              <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
-                <v-select
-                  label="Language"
-                  v-model="selectedTaskLanguage"
-                  :items="newTaskStore.language"
-                  item-title="complete"
-                  item-value="apiFormat"
-                />
-              </v-col>
-              <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
-                <v-checkbox label="Is Active" v-model="isNewTaskActive"></v-checkbox>
-              </v-col>
-
-              <!--Users list-->
-              <v-col cols="6">
-                <v-list height="200px">
-                  <v-list-subheader>Select users</v-list-subheader>
-                  <v-list-item
-                    v-for="user in users"
-                    :key="user.user.id"
-                    :title="user.user.username"
-                    :subtitle="user.user.email"
-                  >
-                    <template v-slot:prepend>
-                      <v-list-item-action>
-                        <v-checkbox-btn v-model="newTaskUsers" :value="user.user.id" />
-                      </v-list-item-action>
-                    </template>
-                  </v-list-item>
-                </v-list>
-              </v-col>
-
-              <!--Files list-->
-              <v-col cols="6">
-                <v-list height="200px">
-                  <v-list-subheader>Select files</v-list-subheader>
-                  <v-list-item
-                    v-for="file of files"
-                    :key="file.id"
-                    :title="file.name"
-                    :subtitle="'File ID: ' + file.id"
-                  >
-                    <template v-slot:prepend>
-                      <v-list-item-action>
-                        <v-checkbox-btn v-model="newTaskFiles" :value="file.id" />
-                      </v-list-item-action>
-                    </template>
-                  </v-list-item>
-                </v-list>
-              </v-col>
-
-              <!--Initial Data and New Turn-->
-              <v-col cols="6">
-                <v-select
-                  label="Initial Data"
-                  v-model="initialDataTaskSelection"
-                  :items="newTaskStore.initialData"
-                  item-title="complete"
-                  item-value="apiFormat"
-                ></v-select>
-                <!-- text-field and select are enabled only when initial data is 'pre-filled'-->
-                <v-text-field
-                  v-model="initialDataEndpoint"
-                  label="URL"
-                  :disabled="isInitialDataFormDisabled"
-                  :error="initialDataError"
-                  :error-messages="initialDataErrorStatus"
-                >
-                  <template v-slot:append>
-                    <v-btn
-                      text="Go"
-                      @click="getInitialData()"
-                      variant="tonal"
-                      :loading="initialDataButtonLoading"
-                    />
-                  </template>
-                </v-text-field>
-                <v-select
-                  v-model="selectedInitialDataGenerationMethod"
-                  label="Generation Method"
-                  :items="initialDataMethods"
-                  :disabled="isInitialDataSelectionDisabled"
-                ></v-select>
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  label="New Turn"
-                  v-model="newTurnTaskSelection"
-                  :items="newTaskStore.newTurn"
-                  item-title="complete"
-                  item-value="apiFormat"
-                ></v-select>
-                <v-text-field
-                  v-model="newTurnEndpoint"
-                  label="URL"
-                  :disabled="isNewTurnFormDisabled"
-                  :error="newTurnError"
-                  :error-messages="newTurnErrorMessage"
-                >
-                  <template v-slot:append>
-                    <v-btn
-                      text="Go"
-                      @click="getNewTurn()"
-                      variant="tonal"
-                      :loading="newTurnButtonLoading"
-                    />
-                  </template>
-                </v-text-field>
-                <v-select
-                  v-model="selectedNewTurnGenerationMethod"
-                  label="Generation Method"
-                  :items="newTurnMethods"
-                  :disabled="isNewTurnSelectionDisabled"
-                ></v-select>
-              </v-col>
-
-              <!--Roles list-->
-              <v-col cols="12">
-                <!--
-                <p class="text-body-1 mt-2">Roles</p>
-                -->
-                <!--TODO: set max height on container in order to avoid card buttons disappearing-->
-                <v-container fluid max-heigth="300px">
-                  <v-row dense v-for="role in newTaskRoles" :key="role.number">
-                    <v-col>
-                      <v-text-field
-                        v-model="role.id"
-                        :disabled="isNewTaskRolesDisabled"
-                        label="Speaker ID"
-                      >
-                        <template v-slot:prepend>
-                          <v-tooltip text="Speaker has ground">
-                            <template v-slot:activator="{ props }">
-                              <v-btn
-                                v-bind="props"
-                                :icon="role.ground ? 'mdi-file-document-check-outline' : 'mdi-file-document-remove-outline'"
-                                :color="role.ground ? 'primary' : ''"
-                                @click="role.ground = !role.ground"
-                                :disabled="isNewTaskRolesDisabled"
-                              />
-                            </template>
-                          </v-tooltip>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-                    <v-col>
-                      <v-text-field
-                        v-model="role.name"
-                        :disabled="isNewTaskRolesDisabled"
-                        label="Speaker Role"
-                      >
-                        <template v-slot:append>
-                          <v-btn
-                            icon="mdi-trash-can-outline"
-                            variant="tonal"
-                            @click="deleteRole()"
-                            :disabled="isNewTaskRolesDeleteDisabled"
-                          />
-                        </template>
-                      </v-text-field>
-                    </v-col>
-                  </v-row>
-                  <v-btn
-                    class="mb-4"
-                    :disabled="isNewTaskRolesDisabled"
-                    variant="tonal"
-                    text="Add New Role"
-                    @click="addNewRole()"
-                  />
-                </v-container>
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text="Cancel" variant="tonal" @click="dialogNewTask = false" />
-            <!--type="submit"-->
-            <v-btn
-              text="Create"
-              type="submit"
-              :loading="loadingSubmitNewTask"
-              variant="tonal"
-              color="primary"
-            />
-          </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="dialogDifferentMethodsError" :max-width="variablesStore.errorMaxWidth">
-      <v-card
-        title="Error!"
-        prepend-icon="mdi-alert-circle"
-        color="error"
-        text="Different Generation Methods are selected!"
-      >
-        <v-card-actions>
-          <v-btn @click="dialogDifferentMethodsError = false" text="Close"></v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="dialogNewTaskError" :max-width="variablesStore.errorMaxWidth">
-      <v-card
-        title="Error!"
-        prepend-icon="mdi-alert-circle"
-        color="error"
-        :text="'Error! ' + dialogNewTaskErrorMessage"
-      >
-        <v-card-actions>
-          <v-btn @click="dialogNewTaskError = false" text="Close"></v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-snackbar v-model="snackbarNewTaskSuccess" timeout="2000"
-      >New Task created successfully!
-      <template v-slot:actions>
-        <v-btn color="blue" variant="text" @click="snackbarNewTaskSuccess = false"> Close </v-btn>
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
