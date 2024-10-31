@@ -41,7 +41,7 @@ const router = createRouter({
 //Not working. TODO: redirect to 'projects' from 'login' is already authenticated
 router.beforeEach((to, from) => {
   if (dataService.isAuthenticated() && (to.name == 'login' || from.name == 'login')) {
-    console.log('truetrue')
+    // console.log('truetrue')
     return { name: 'projects' }
   }
 })

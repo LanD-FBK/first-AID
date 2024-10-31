@@ -95,7 +95,7 @@ export default {
     const self = this
     dataService.getProjectFiles(this.id).then(function (data) {
       self.files = data.data
-      console.log(self.files)
+      // console.log(self.files)
     })
   },
   methods: {
@@ -129,7 +129,7 @@ export default {
 
     testNewDoc: function(){
       let files = document.getElementById('uploadFiles').files
-      console.log(files)
+      // console.log(files)
       dataService.uploadFiles(this.id, files)
     },
     
@@ -139,13 +139,13 @@ export default {
       //TODO: Add loading
       const self = this
       dataService.uploadFiles(this.id, this.uploadedFiles).then(function (data) {
-        console.log(data)
+        // console.log(data)
         self.isUploadDocsDoneButtonEnabled = false
       })
     },
     removeDocument: function (documentID) {
       dataService.deleteProjectFiles(this.id, documentID).then(function (data) {
-        console.log(data)
+        // console.log(data)
       })
     },
 
@@ -156,7 +156,7 @@ export default {
           this.editProjectAdminList.push(user.user_id)
         }
       }
-      console.log(this.editProjectAdminList)
+      // console.log(this.editProjectAdminList)
     },
 
     //Manage Tasks funcs
@@ -178,7 +178,7 @@ export default {
               generationMethod: item.generation_method,
               roles: item.roles
             })
-            console.log(self.initialDataRoles)
+            // console.log(self.initialDataRoles)
             self.initialDataMethods.push({
               title: item.generation_method,
               props: {
@@ -189,7 +189,7 @@ export default {
           self.initialDataButtonLoading = false
         })
         .catch(function (error) {
-          console.log(error)
+          // console.log(error)
           self.initialDataButtonLoading = false
           self.initialDataError = true
           self.initialDataErrorStatus = String(error.message + ": " + error.response.statusText)
@@ -202,7 +202,7 @@ export default {
       dataService
         .getTaskData(this.newTurnEndpoint)
         .then(function (data) {
-          console.log(data.data)
+          // console.log(data.data)
           for (let item of data.data) {
             self.newTurnRoles.push({
               generationMethod: item.generation_method,
@@ -215,11 +215,11 @@ export default {
               }
             })
           }
-          console.log(self.newTurnMethods)
+          // console.log(self.newTurnMethods)
           self.newTurnButtonLoading = false
         })
         .catch(function (error) {
-          console.log(error)
+          // console.log(error)
           self.newTurnButtonLoading = false
           self.newTurnError = true
           self.newTurnErrorMessage = String(error.message + ": " + error.response.statusText)
@@ -277,13 +277,13 @@ export default {
             this.newTaskFiles
           )
           .then(function (data) {
-            console.log(data)
+            // console.log(data)
             self.dialogNewTask = false
             self.snackbarNewTaskSuccess = true
             self.loadingSubmitNewTask = false
           })
           .catch(function (error) {
-            console.log(error)
+            // console.log(error)
             self.dialogNewTaskError = true
             self.dialogNewTaskErrorMessage = String(error.message + ": " + error.response.statusText)
             self.loadingSubmitNewTask = false
@@ -298,13 +298,13 @@ export default {
         id: '',
         number: this.newTaskRoles[this.newTaskRoles.length - 1].number + 1
       })
-      console.log(this.newTaskRoles)
+      // console.log(this.newTaskRoles)
     },
 
     //Removes role from new task
     deleteRole: function (deleteIndex) {
       this.newTaskRoles.splice(deleteIndex, 1)
-      console.log(this.newTaskRoles)
+      // console.log(this.newTaskRoles)
     },
 
     editProjectDialogAdminDisplay: function (userID) {
@@ -313,8 +313,8 @@ export default {
     },
     //Check logic
     isNewTurnMethodsListItemDisabled: function (generationMethod) {
-      console.log(this.selectedInitialDataGenerationMethod)
-      console.log(generationMethod)
+      // console.log(this.selectedInitialDataGenerationMethod)
+      // console.log(generationMethod)
       if (this.selectedInitialDataGenerationMethod == '') return false
       else if (this.selectedInitialDataGenerationMethod == generationMethod) return false
       return true
@@ -338,7 +338,7 @@ export default {
       return this.editProjectUserSelect.length === 0 ? true : false
     },
     isInitialDataFormDisabled() {
-      console.log(this.initialDataTaskSelection)
+      // console.log(this.initialDataTaskSelection)
       return this.initialDataTaskSelection === 'pre_compiled' ? false : true
     },
     isNewTurnFormDisabled() {
@@ -411,7 +411,7 @@ export default {
     },
     initialDataTaskSelection(newValue, oldValue){
       if(newValue == 'empty' && oldValue !== undefined){
-        console.log('watcher empty')
+        // console.log('watcher empty')
         for (let role of this.newTaskRoles){
           role.id = ''
           role.name = ''
