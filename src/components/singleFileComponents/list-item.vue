@@ -324,6 +324,12 @@ export default {
       if (this.selectedNewTurnGenerationMethod == '') return false
       else if (this.selectedNewTurnGenerationMethod != generationMethod) return false
       return true
+    },
+    openTaskList: function(id) {
+      this.$router.push({
+        name: 'tasks',
+        params: { projectID: id }
+      })
     }
   },
   computed: {
@@ -473,10 +479,7 @@ export default {
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <v-card @click.prevent="this.$router.push({
-                      name: 'tasks',
-                      params: { projectID: this.id }
-                    })">
+        <v-card @click.prevent="openTaskList(id)">
           <v-row align="center">
             <v-col cols="12" sm="3" md="6" xl="6" xs="6">
               <v-row class="d-flex justify-left">
