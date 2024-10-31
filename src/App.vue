@@ -1,5 +1,4 @@
 <script>
-import { provide, reactive } from 'vue';
 import dataService from './components/dataService'
 import { useLoginStore, useVariablesStore, useNewTaskStore } from './store'
 
@@ -295,6 +294,8 @@ export default {
     getInitialData: function () {
       this.initialDataButtonLoading = true
       const self = this
+      self.initialDataRoles = []
+      self.initialDataMethods = []
       dataService
         .getTaskData(this.initialDataEndpoint)
         .then(function (data) {
@@ -325,6 +326,8 @@ export default {
     getNewTurn: function () {
       this.newTurnButtonLoading = true
       const self = this
+      self.newTurnMethods = []
+      self.newTurnRoles = []
       dataService
         .getTaskData(this.newTurnEndpoint)
         .then(function (data) {
