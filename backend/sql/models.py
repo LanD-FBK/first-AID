@@ -226,6 +226,7 @@ class ActorCreate(SQLModel):
     # TODO: check format of label
     label: str
     name: str
+    ground: bool
 
 
 class ActorCreateWithOrd(ActorCreate):
