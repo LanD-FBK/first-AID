@@ -195,11 +195,11 @@ export default {
   },
 
   activateTask: function(projectID, taskID){
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/activate')
+    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/activate/')
   },
 
   deactivateTask: function(projectID, taskID){
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/deactivate')
+    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/deactivate/')
   },
 
   //This call only works when there is no ending "slash" symbol
@@ -212,7 +212,7 @@ export default {
   },
 
   createAnnotation: function(projectID, taskID, annotations, comment, parent){
-    return axios.post('/projects/' + projectID + '/tasks/' + taskID + 'annotations', {
+    return axios.post('/projects/' + projectID + '/tasks/' + taskID + '/annotations/', {
       annotations: annotations,
       comment: comment,
       parent: parent
@@ -220,7 +220,7 @@ export default {
   },
 
   getAnnotation: function(projectID, taskID, annotationID){
-    return axios. get('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID)
+    return axios.get('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID)
   },
 
   editAnnotation: function(projectID, taskID, annotationID, annotations, comment){
