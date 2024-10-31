@@ -8,7 +8,7 @@ from routes.common import ListCommons
 from routes.login import user_must_be_admin, get_current_user
 from sql.database import get_db
 from sql.dboptions import getOption
-from sql.models import UserOutput, UserCreate
+from sql.models import UserOutput, UserCreate, User
 
 router = APIRouter()
 
@@ -58,6 +58,13 @@ async def call_edit_user(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+@router.get("/me")
+async def call_user_info(
+        db: Annotated[Session, Depends(get_db)],
+        user: Annotated[User, Depends(get_current_user)],
+) -> UserOutput:
+    return user
 
 @router.patch("/me/changepassword", status_code=204)
 async def call_change_password(
