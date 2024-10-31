@@ -174,7 +174,7 @@ export default {
   //Not working. Is it useful?
   isAuthenticated: function () {
     axios
-      .get('/users/')
+      .get('/users/me')
       .then(function () {
         // console.log('true')
         return true

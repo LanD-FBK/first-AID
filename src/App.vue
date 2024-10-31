@@ -227,7 +227,7 @@ export default {
       return this.$route.name == 'projects' ? true : false
     },
     isAdmin() {
-      return this.loginStore.username == 'admin' ? true : false
+      return this.loginStore.is_admin
     }
   },
   watch: {

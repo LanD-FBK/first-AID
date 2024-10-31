@@ -1,5 +1,5 @@
 <script>
-import { useVariablesStore } from '@/store'
+import { useVariablesStore, useLoginStore } from '@/store'
 import dataService from './dataService'
 import ListItem from './singleFileComponents/list-item.vue'
 
@@ -10,6 +10,7 @@ export default {
   data() {
     return {
       variablesStore: useVariablesStore(),
+      loginStore: useLoginStore(),
       ds: dataService,
       projects: undefined,
       dialogProjectDeletion: false,
@@ -64,7 +65,7 @@ export default {
         <p class="text-h2">Projects</p>
       </v-col>
       <v-col cols="6" align="right">
-        <v-btn color="primary" variant="elevated" @click="$emit('openNewProject')"
+        <v-btn color="primary" variant="elevated" @click="$emit('openNewProject')" v-if="loginStore.is_admin"
           >Add Project</v-btn
         >
       </v-col>

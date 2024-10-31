@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 export const useLoginStore = defineStore('login', {
   state: () => ({
     token: undefined,
-    username: undefined
+    username: undefined,
+    is_admin: false,
+    project_manager: []
   }),
   actions: {
     updateBearer(newToken) {
@@ -12,15 +14,19 @@ export const useLoginStore = defineStore('login', {
     removeBearer() {
       this.token = undefined
     },
-    updateUsername(newUsername) {
+    updateUser(newUsername, is_admin, project_manager) {
       this.username = newUsername
+      this.is_admin = is_admin
+      this.project_manager = project_manager
     },
-    removeUsername() {
+    removeUser() {
       this.username = undefined
+      this.is_admin = false
+      this.project_manager = []
     },
     removeAll() {
-      this.token = undefined
-      this.username = undefined
+      this.removeBearer()
+      this.removeUser()
     },
     isToken() {
       if (this.token) return true
