@@ -8,6 +8,8 @@ export default {
   components: { highlightable, Splitpanes, Pane },
   data() {
     return {
+      annotationID: undefined,
+      annotationParent: 0,
       projectID: 0,
       selectedRound: 0,
       selectedFile: 0,
@@ -20,69 +22,134 @@ export default {
       actors: undefined,
       annotation_data: undefined,
       toBeSelected: undefined,
-      dialog: [{
-        name: 'Actor',
-        dialog: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-      }]
+      comment: '',
+      dialog: [
+        {
+          name: 'Actor',
+          dialog: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+        }
+      ]
     }
   },
-  mounted: function() {
-    const self = this
+  mounted: function () {
+    const vueThis = this
     this.projectID = this.$route.params.projectID
     this.taskID = this.$route.params.taskID
-    self.actorsLabels = {}
-    self.files = {}
-    self.actors = []
-    self.annotation_data = {}
+    this.annotationID = this.$route.params.annotationID
+    this.annotationParent = this.$route.params.annotationParent
 
-    dataService.getTaskInfo(this.projectID, this.taskID).then(function(data) {
-      self.annotation_data = data.data?.meta?.new_annotation_data
-      if (self.annotation_data === undefined || self.annotation_data.length === 0) {
-        self.annotation_data = {}
+    vueThis.actorsLabels = {}
+    vueThis.files = {}
+    vueThis.actors = []
+    vueThis.annotation_data = {}
+
+    let promises = []
+    promises.push(dataService.getTaskInfo(this.projectID, this.taskID))
+    if (this.annotationID) {
+      promises.push(dataService.getAnnotation(this.projectID, this.taskID, this.annotationID))
+    }
+    else if (this.annotationParent) {
+      promises.push(dataService.getAnnotation(this.projectID, this.taskID, this.annotationParent))
+    }
+
+    Promise.all(promises).then(function (result) {
+      if (vueThis.annotationID || vueThis.annotationParent) {
+        vueThis.annotation_data = result[1].data.annotations.data
+        vueThis.comment = result[1].data.comment
+      } else {
+        vueThis.annotation_data = result[0].data?.meta?.new_annotation_data
+        if (vueThis.annotation_data === undefined || vueThis.annotation_data.length === 0) {
+          vueThis.annotation_data = {}
+        }
       }
-      for (let a of data.data.actors) {
-        self.actorsLabels[a.label] = a.name
+      console.log(vueThis.annotation_data)
+      for (let a of result[0].data.actors) {
+        vueThis.actorsLabels[a.label] = a.name
       }
-      self.actors = data.data.actors
-      for (let f of data.data.files) {
-        self.files[f.file.id] = f.file
+      vueThis.actors = result[0].data.actors
+      for (let f of result[0].data.files) {
+        vueThis.files[f.file.id] = f.file
       }
-    }).catch().then(function() {
-      self.loadingData = false
+      vueThis.loadingData = false
     })
+
+    // dataService.getTaskInfo(this.projectID, this.taskID).then(function(data) {
+    //   self.annotation_data = data.data?.meta?.new_annotation_data
+    //   if (self.annotation_data === undefined || self.annotation_data.length === 0) {
+    //     self.annotation_data = {}
+    //   }
+    //   for (let a of data.data.actors) {
+    //     self.actorsLabels[a.label] = a.name
+    //   }
+    //   self.actors = data.data.actors
+    //   for (let f of data.data.files) {
+    //     self.files[f.file.id] = f.file
+    //   }
+    // }).catch().then(function() {
+    //   self.loadingData = false
+    // })
   },
   computed: {
-    filesForSelect: function() {
+    filesForSelect: function () {
       let newList = []
       newList.push({
-        'title': '[Select file]',
-        'value': 0
+        title: '[Select file]',
+        value: 0
       })
       if (this.files) {
         for (let i in this.files) {
           newList.push({
-            'title': this.files[i].name,
-            'subtitle': this.files[i].size + ' bytes',
-            'value': this.files[i].id
+            title: this.files[i].name,
+            subtitle: this.files[i].size + ' bytes',
+            value: this.files[i].id
           })
         }
       }
       return newList
     },
-    rolesForSelect: function() {
+    rolesForSelect: function () {
       let newList = []
       for (let i in this.actors) {
         // use base-color
         newList.push({
-          'title': this.actors[i].name,
-          'value': this.actors[i].label
+          title: this.actors[i].name,
+          value: this.actors[i].label
         })
       }
       return newList
     }
   },
   methods: {
-    scrollToPos: function() {
+    confirmAnnotation: function () {
+      let annotation = { data: this.annotation_data }
+      let vueThis = this
+
+      if (this.annotationID) {
+        dataService
+          .editAnnotation(this.projectID, this.taskID, this.annotationID, annotation, this.comment)
+          .then(function () {
+            vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
+          })
+          .catch(function (error) {
+            console.log(error)
+          })
+      }
+      else {
+        dataService
+          .createAnnotation(this.projectID, this.taskID, annotation, this.comment, this.annotationParent)
+          .then(function () {
+            vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
+          })
+          .catch(function (error) {
+            console.log(error)
+          })
+      }
+    },
+    cancel: function () {
+      // this.$router.push({ name: 'projects' })
+      this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
+    },
+    scrollToPos: function () {
       const selection = window.getSelection()
       let top = selection.getRangeAt(0).getBoundingClientRect().top
       let height = selection.getRangeAt(0).getBoundingClientRect().height
@@ -91,22 +158,22 @@ export default {
 
       if (top < preOffset || top > winHeight - height) {
         let to = document.getElementById('high-file-content').scrollTop - (preOffset - top)
-        document.getElementById('high-file-content').scrollTo({ 'top': to, behavior: 'smooth' })
+        document.getElementById('high-file-content').scrollTo({ top: to, behavior: 'smooth' })
       }
     },
-    onLink: function(text, offset_start, offset_end) {
+    onLink: function (text, offset_start, offset_end) {
       let newGround = {
-        'text': text,
-        'file_id': this.selectedFile,
-        'offset_start': Math.min(offset_start, offset_end),
-        'offset_end': Math.max(offset_start, offset_end)
+        text: text,
+        file_id: this.selectedFile,
+        offset_start: Math.min(offset_start, offset_end),
+        offset_end: Math.max(offset_start, offset_end)
       }
       this.annotation_data[this.selectedRound].ground.push(newGround)
     },
-    deleteRound: function(index) {
+    deleteRound: function (index) {
       this.annotation_data.splice(index, 1)
     },
-    addRound: function(index) {
+    addRound: function (index) {
       let replaceIndex = index + 1
       let s = undefined
       let leave = false
@@ -146,28 +213,30 @@ export default {
       }
       if (this.annotation_data.length > 0) {
         this.annotation_data.splice(replaceIndex, 0, {
-          'speaker': chosenActor, 'text': '', ground: []
+          speaker: chosenActor,
+          text: '',
+          ground: []
         })
-
       } else {
         this.annotation_data = []
         this.annotation_data.push({
-          'speaker': chosenActor, 'text': '', ground: []
+          speaker: chosenActor,
+          text: '',
+          ground: []
         })
-
       }
     },
-    deleteGround: function(index, gindex) {
+    deleteGround: function (index, gindex) {
       this.annotation_data[index].ground.splice(gindex, 1)
     },
-    selectText: function(g) {
+    selectText: function (g) {
       this.selectedFile = g.file_id
       this.toBeSelected = g
       this.loadFile()
     },
-    loadSelection: function() {
+    loadSelection: function () {
       let vueThis = this
-      nextTick().then(function() {
+      nextTick().then(function () {
         if (vueThis.toBeSelected !== undefined) {
           // https://stackoverflow.com/questions/17675056/set-selection-by-range-in-javascript
           // https://developer.mozilla.org/en-US/docs/Web/API/Range/setStart
@@ -183,9 +252,8 @@ export default {
           vueThis.toBeSelected = undefined
         }
       })
-
     },
-    loadFile: function() {
+    loadFile: function () {
       if (this.selectedFile) {
         if (this.selectedFile in this.fileContentBuffer) {
           this.fileContent = this.fileContentBuffer[this.selectedFile]
@@ -193,14 +261,17 @@ export default {
         } else {
           let vueThis = this
           this.loadingFile = true
-          dataService.getFileContent(this.projectID, this.selectedFile).then(function(data) {
-            vueThis.fileContentBuffer[vueThis.selectedFile] = data.data
-            vueThis.fileContent = vueThis.fileContentBuffer[vueThis.selectedFile]
-            vueThis.loadingFile = false
-            vueThis.loadSelection()
-          }).catch(function() {
-            vueThis.loadingFile = false
-          })
+          dataService
+            .getFileContent(this.projectID, this.selectedFile)
+            .then(function (data) {
+              vueThis.fileContentBuffer[vueThis.selectedFile] = data.data
+              vueThis.fileContent = vueThis.fileContentBuffer[vueThis.selectedFile]
+              vueThis.loadingFile = false
+              vueThis.loadSelection()
+            })
+            .catch(function () {
+              vueThis.loadingFile = false
+            })
         }
       }
     }
@@ -212,20 +283,20 @@ export default {
   <splitpanes class="default-theme">
     <pane min-size="20" class="file-pane" size="35">
       <p class="text-h4 ma-2">Files</p>
-      <v-select :items="filesForSelect" :item-props="true" v-model="selectedFile"
-                @update:model-value="loadFile"></v-select>
-      <highlightable v-if="selectedFile && !loadingFile"
-                     @link="onLink" id="high-file-content"
-      >
+      <v-select
+        :items="filesForSelect"
+        :item-props="true"
+        v-model="selectedFile"
+        @update:model-value="loadFile"
+      ></v-select>
+      <highlightable v-if="selectedFile && !loadingFile" @link="onLink" id="high-file-content">
         <pre id="file-content">{{ fileContent }}</pre>
       </highlightable>
       <v-skeleton-loader id="file-loader" type="paragraph" v-if="loadingFile"></v-skeleton-loader>
-      <div v-if="!selectedFile || loadingFile" class="empty-div">
-        &nbsp;
-      </div>
+      <div v-if="!selectedFile || loadingFile" class="empty-div">&nbsp;</div>
     </pane>
     <pane class="dialogue-pane">
-      <v-container fluid class="dialogue-div">
+      <v-container fluid id="dialogue-div" v-if="!loadingData">
         <v-row>
           <v-col cols="7" xl="8">
             <p class="text-h4 ma-2 text-center">Dialog</p>
@@ -235,9 +306,12 @@ export default {
             <p class="text-h4 ma-2 text-center">Ground</p>
           </v-col>
         </v-row>
-        <v-row v-for="(round, index) in annotation_data" :key="index"
-               :class="{'selected-row': selectedRound === index}"
-               @click="selectedRound = index">
+        <v-row
+          v-for="(round, index) in annotation_data"
+          :key="index"
+          :class="{ 'selected-row': selectedRound === index }"
+          @click="selectedRound = index"
+        >
           <v-col cols="7" xl="8">
             <v-row>
               <v-col>
@@ -251,11 +325,15 @@ export default {
                     </v-btn>
                   </template>
                   <template #append>
-                    <v-btn color="red" class="ma-1" icon="mdi-trash-can-outline" @click="deleteRound(index)" />
+                    <v-btn
+                      color="red"
+                      class="ma-1"
+                      icon="mdi-trash-can-outline"
+                      @click="deleteRound(index)"
+                    />
                   </template>
                 </v-select>
-                <v-textarea v-model="round['text']" @focus="selectedRound = index">
-                </v-textarea>
+                <v-textarea v-model="round['text']" @focus="selectedRound = index"></v-textarea>
               </v-col>
             </v-row>
           </v-col>
@@ -263,8 +341,13 @@ export default {
           <v-col cols="5" xl="4">
             <v-card v-if="round.ground.length > 0">
               <v-list class="ground-list">
-                <v-list-item v-for="(g, gindex) in round.ground" :key="gindex" :title="files[g.file_id].name"
-                             :subtitle="g.text" @click="selectText(g)">
+                <v-list-item
+                  v-for="(g, gindex) in round.ground"
+                  :key="gindex"
+                  :title="files[g.file_id].name"
+                  :subtitle="g.text"
+                  @click="selectText(g)"
+                >
                   <template v-slot:append>
                     <v-btn
                       color="red"
@@ -278,19 +361,34 @@ export default {
             </v-card>
           </v-col>
         </v-row>
+        <div class="bg-primary" id="buttons-container">
+          <v-text-field label="Comment" bg-color="white" v-model="comment"></v-text-field>
+          <v-btn prepend-icon="mdi-check" @click="confirmAnnotation">Confirm</v-btn>
+          <v-btn prepend-icon="mdi-close" class="ms-3" @click="cancel">Cancel</v-btn>
+        </div>
       </v-container>
     </pane>
   </splitpanes>
 </template>
 
 <style>
+#buttons-container {
+  position: sticky;
+  bottom: 0;
+  padding: 20px;
+  text-align: right;
+}
+
+#buttons-container .v-btn {
+  margin-left: 20px;
+}
 
 .icon-up {
-  background-image: url("/plus_up.svg");
+  background-image: url('/plus_up.svg');
 }
 
 .icon-down {
-  background-image: url("/plus_down.svg");
+  background-image: url('/plus_down.svg');
 }
 
 .selected-row {
@@ -311,7 +409,7 @@ div.selected-row-label {
 */
 
 .ground-list .v-list-item-title {
-  font-size: .8em;
+  font-size: 0.8em;
 }
 
 #file-content {
@@ -342,9 +440,10 @@ div.selected-row-label {
   padding: 10px;
 }
 
-.dialogue-div {
+#dialogue-div {
   overflow: auto;
   height: 100%;
+  padding: 0;
 }
 
 /*#pre-col {

@@ -31,6 +31,16 @@ const router = createRouter({
       component: annotationInterface
     },
     {
+      path: '/projects/:projectID/tasks/:taskID/annotate/parent/:annotationParent',
+      name: 'annotation_parent',
+      component: annotationInterface
+    },
+    {
+      path: '/projects/:projectID/tasks/:taskID/annotate/:annotationID',
+      name: 'annotation_edit',
+      component: annotationInterface
+    },
+    {
       path: '/projects/:projectID/tasks/',
       name: 'tasks',
       component: tasks
