@@ -175,13 +175,13 @@ async def deactivate_task(
         raise HTTPException(status_code=400, detail=f"Task {task_id} does not belong to project {project_id}")
     db_task.is_active = False
     db.add(db_task)
-    db.close()
+    db.commit()
     db.refresh(db_task)
     return db_task
 
 
 @router.patch("/{task_id}/activate")
-async def deactivate_task(
+async def activate_task(
         db: Annotated[Session, Depends(get_db)],
         user: Annotated[User, Depends(get_current_user)],
         project_id: int,
@@ -193,7 +193,7 @@ async def deactivate_task(
         raise HTTPException(status_code=400, detail=f"Task {task_id} does not belong to project {project_id}")
     db_task.is_active = True
     db.add(db_task)
-    db.close()
+    db.commit()
     db.refresh(db_task)
     return db_task
 
