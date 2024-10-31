@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 import sql.crud as crud
 from sql.database import get_db
 from sql.dboptions import getOption
-from sql.models import User
+from sql.models import User, ProjectUserLink
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -50,6 +50,9 @@ only_admin_exception = HTTPException(
 class Token(BaseModel):
     access_token: str
     token_type: str
+    is_admin: bool
+    is_active: bool
+    project_manager: set
 
 
 class TokenData(BaseModel):
@@ -122,4 +125,10 @@ async def call_login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return Token(access_token=access_token, token_type="bearer")
+    stmt = select(ProjectUserLink).where(ProjectUserLink.user_id == user.id, ProjectUserLink.is_project_admin == True)
+    results = db.exec(stmt).all()
+    project_manager = set()
+    for result in results:
+        project_manager.add(result.project_id)
+    return Token(access_token=access_token, token_type="bearer", is_admin=user.is_admin, is_active=user.is_active,
+                 project_manager=project_manager)
