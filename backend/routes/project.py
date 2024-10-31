@@ -42,7 +42,7 @@ def check_manage_project(db: Session, project_id: int, user: User):
     if not db_obj.is_active:
         raise HTTPException(status_code=400, detail=f"Project {project_id} is not active")
 
-    ret = crud.get_existing_elements(ProjectUserLink) \
+    ret = crud.get_existing_elements(db, ProjectUserLink) \
         .where(ProjectUserLink.project_id == project_id) \
         .where(ProjectUserLink.user_id == user.id) \
         .where(ProjectUserLink.is_project_admin == True).first()
