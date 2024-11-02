@@ -8,7 +8,7 @@ export default {
       ds: dataService,
       loginStore: useLoginStore(),
       variablesStore: useVariablesStore(),
-      usersList: undefined,
+      usersList: null,
 
       //Create project dialog vars
       dialogCreateProject: false,
@@ -194,6 +194,7 @@ export default {
     },
     //User deletion funcs
     openDeleteEditUserDialog: function (dialogType) {
+      this.usersList = undefined
       if (dialogType == 'delete') this.dialogDeleteUser = true
       else this.dialogEditUser = true
     },
@@ -270,17 +271,14 @@ export default {
     //Refreshes the variable everytime users' details get changed
     //Everytime the variable need a refresh it gets set to 'undefined'
     //Eager watcher so it fetches the list on page load
-    usersList: {
-      handler(newValue, oldValue) {
+    usersList(newValue, oldValue) {
         const self = this
         if (newValue == undefined) {
           dataService.getUsers().then(function (data) {
             self.usersList = data.data
           })
         }
-      },
-      immediate: true
-    }
+      }
 
     /*
     usersList(newValue, oldValue) {
