@@ -306,6 +306,13 @@ export default {
             <p class="text-h4 ma-2 text-center">Ground</p>
           </v-col>
         </v-row>
+        <v-row v-if="Object.keys(annotation_data).length === 0">
+          <v-col class="text-center ma-3">
+            <v-btn icon="" class="ma-1" @click="addRound(-1)">
+              <v-icon icon="mdi-plus"></v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
         <v-row
           v-for="(round, index) in annotation_data"
           :key="index"
