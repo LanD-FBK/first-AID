@@ -3,7 +3,7 @@ import urllib
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from routes.file import get_file_content
 from routes.login import get_current_user
@@ -158,7 +158,12 @@ async def call_task_info(
     db_task = get_object_by_id(db, task_id, Task)
     if db_task.project_id != project_id:
         raise HTTPException(status_code=400, detail=f"Task {task_id} does not belong to project {project_id}")
-    db_project = check_manage_project(db, db_task.project_id, user)
+    (db_project, is_manager) = check_manage_project(db, db_task.project_id, user, True)
+    if not is_manager:
+        stmt = select(Task, TaskUserLink).where(Task.id == task_id, TaskUserLink.user_id == user.id)
+        result = db.exec(stmt).first()
+        if not result:
+            raise HTTPException(status_code=400, detail=f"User {user.username} cannot access task {task_id}")
     return db_task
 
 
