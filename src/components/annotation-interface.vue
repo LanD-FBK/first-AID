@@ -22,6 +22,7 @@ export default {
       actors: undefined,
       annotation_data: undefined,
       toBeSelected: undefined,
+      actorsWithGround: undefined,
       comment: '',
       dialog: [
         {
@@ -42,6 +43,7 @@ export default {
     vueThis.files = {}
     vueThis.actors = []
     vueThis.annotation_data = {}
+    vueThis.actorsWithGround = new Set()
 
     let promises = []
     promises.push(dataService.getTaskInfo(this.projectID, this.taskID))
@@ -65,7 +67,11 @@ export default {
       console.log(vueThis.annotation_data)
       for (let a of result[0].data.actors) {
         vueThis.actorsLabels[a.label] = a.name
+        if (a.ground) {
+          vueThis.actorsWithGround.add(a.label)
+        }
       }
+
       vueThis.actors = result[0].data.actors
       for (let f of result[0].data.files) {
         vueThis.files[f.file.id] = f.file
@@ -289,7 +295,7 @@ export default {
         v-model="selectedFile"
         @update:model-value="loadFile"
       ></v-select>
-      <highlightable v-if="selectedFile && !loadingFile" @link="onLink" id="high-file-content">
+      <highlightable :disabled="!actorsWithGround.has(annotation_data[selectedRound].speaker)" v-if="selectedFile && !loadingFile" @link="onLink" id="high-file-content">
         <pre id="file-content">{{ fileContent }}</pre>
       </highlightable>
       <v-skeleton-loader id="file-loader" type="paragraph" v-if="loadingFile"></v-skeleton-loader>
