@@ -1,8 +1,14 @@
 <script>
 import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
+import { useLoginStore } from '@/store.js'
 
 export default {
   name: 'TaskAnnotations',
+  data() {
+    return {
+      loginStore: useLoginStore()
+    }
+  },
   components: {
     DynamicButton
   },
@@ -55,14 +61,22 @@ export default {
           icon="mdi-text-box-plus"
           @click="addAnnotation(task.id, annotation.id)"
         ></DynamicButton>
-        <DynamicButton
-          class="ms-3"
-          v-else
-          color="yellow-lighten-1"
-          text="Edit annotation"
-          icon="mdi-pencil"
-          @click="editAnnotation(task.id, annotation.id)"
-        ></DynamicButton>
+        <template v-if="annotation.user_id === loginStore.user_id && !annotation.closed">
+          <DynamicButton
+            class="ms-3"
+            color="yellow-lighten-1"
+            text="Edit annotation"
+            icon="mdi-pencil"
+            @click="editAnnotation(task.id, annotation.id)"
+          ></DynamicButton>
+          <DynamicButton
+            class="ms-3"
+            color="yellow-lighten-1"
+            text="Confirm annotation"
+            icon="mdi-text-box-check"
+            @click="closeAnnotation(task.id, annotation.id)"
+          ></DynamicButton>
+        </template>
         <DynamicButton
           class="ms-3"
           v-if="isManager && annotation.closed"
@@ -70,14 +84,6 @@ export default {
           text="Reopen annotation"
           icon="mdi-text-box-edit"
           @click="reopenAnnotation(task.id, annotation.id)"
-        ></DynamicButton>
-        <DynamicButton
-          class="ms-3"
-          v-else
-          color="yellow-lighten-1"
-          text="Confirm annotation"
-          icon="mdi-text-box-check"
-          @click="closeAnnotation(task.id, annotation.id)"
         ></DynamicButton>
       </template>
     </v-list-item>
