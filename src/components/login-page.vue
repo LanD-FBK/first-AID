@@ -34,7 +34,7 @@ export default {
         .getToken(this.username, this.password)
         .then(function (data) {
           self.loginStore.updateBearer(data.data.access_token)
-          self.loginStore.updateUser(self.username, data.data.is_admin, data.data.project_manager)
+          self.loginStore.updateUser(self.username, data.data.user_id, data.data.is_admin, data.data.project_manager)
           self.loading = false
           self.$router.push({ name: 'projects' })
         })
