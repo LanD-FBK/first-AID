@@ -141,7 +141,7 @@ export default {
     <v-list lines="two">
       <!--      <v-list-subheader inset>Folders</v-list-subheader>-->
 
-      <v-expansion-panels>
+      <v-expansion-panels multiple>
         <v-expansion-panel v-for="task of tasks" :key="task.id">
           <v-expansion-panel-title class="item-title">
             <v-row no-gutters>
