@@ -49,8 +49,7 @@ export default {
     promises.push(dataService.getTaskInfo(this.projectID, this.taskID))
     if (this.annotationID) {
       promises.push(dataService.getAnnotation(this.projectID, this.taskID, this.annotationID))
-    }
-    else if (this.annotationParent) {
+    } else if (this.annotationParent) {
       promises.push(dataService.getAnnotation(this.projectID, this.taskID, this.annotationParent))
     }
 
@@ -123,10 +122,15 @@ export default {
           .catch(function (error) {
             console.log(error)
           })
-      }
-      else {
+      } else {
         dataService
-          .createAnnotation(this.projectID, this.taskID, annotation, this.comment, this.annotationParent)
+          .createAnnotation(
+            this.projectID,
+            this.taskID,
+            annotation,
+            this.comment,
+            this.annotationParent
+          )
           .then(function () {
             vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
           })
@@ -165,36 +169,30 @@ export default {
     },
     addRound: function (index) {
       let replaceIndex = index + 1
-      let s = undefined
-      let leave = false
+      let s
       if (this.annotation_data.length > replaceIndex) {
         s = this.annotation_data[replaceIndex].speaker
       } else if (this.annotation_data.length > 0) {
         s = this.annotation_data[this.annotation_data.length - 1].speaker
-        leave = true
       } else {
         // get the second one
         s = this.actors[1].label
       }
       let chosenActor = undefined
-      if (leave) {
-        chosenActor = s
-      } else {
-        let limit = 2
-        let count = 0
-        let previous = undefined
-        while (chosenActor === undefined) {
-          count++
-          if (count > limit) {
+      let limit = 2
+      let count = 0
+      let previous = undefined
+      while (chosenActor === undefined) {
+        count++
+        if (count > limit) {
+          break
+        }
+        for (let a of this.actors) {
+          if (a.label === s && previous !== undefined) {
+            chosenActor = previous
             break
           }
-          for (let a of this.actors) {
-            if (a.label === s && previous !== undefined) {
-              chosenActor = previous
-              break
-            }
-            previous = a.label
-          }
+          previous = a.label
         }
       }
 
@@ -279,7 +277,12 @@ export default {
         v-model="selectedFile"
         @update:model-value="loadFile"
       ></v-select>
-      <highlightable :disabled="!actorsWithGround.has(annotation_data[selectedRound].speaker)" v-if="selectedFile && !loadingFile" @link="onLink" id="high-file-content">
+      <highlightable
+        :disabled="!actorsWithGround.has(annotation_data[selectedRound].speaker)"
+        v-if="selectedFile && !loadingFile"
+        @link="onLink"
+        id="high-file-content"
+      >
         <pre id="file-content">{{ fileContent }}</pre>
       </highlightable>
       <v-skeleton-loader id="file-loader" type="paragraph" v-if="loadingFile"></v-skeleton-loader>
@@ -426,5 +429,4 @@ export default {
   height: 100%;
   padding: 0;
 }
-
 </style>
