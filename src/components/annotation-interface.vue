@@ -42,7 +42,7 @@ export default {
     vueThis.actorsLabels = {}
     vueThis.files = {}
     vueThis.actors = []
-    vueThis.annotation_data = {}
+    vueThis.annotation_data = []
     vueThis.actorsWithGround = new Set()
 
     let promises = []
@@ -61,10 +61,10 @@ export default {
       } else {
         vueThis.annotation_data = result[0].data?.meta?.new_annotation_data
         if (vueThis.annotation_data === undefined || vueThis.annotation_data.length === 0) {
-          vueThis.annotation_data = {}
+          vueThis.annotation_data = []
         }
       }
-      console.log(vueThis.annotation_data)
+
       for (let a of result[0].data.actors) {
         vueThis.actorsLabels[a.label] = a.name
         if (a.ground) {
