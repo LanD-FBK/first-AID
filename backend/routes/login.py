@@ -52,6 +52,7 @@ class Token(BaseModel):
     token_type: str
     is_admin: bool
     is_active: bool
+    user_id: int
     project_manager: set
 
 
@@ -131,4 +132,4 @@ async def call_login_for_access_token(
     for result in results:
         project_manager.add(result.project_id)
     return Token(access_token=access_token, token_type="bearer", is_admin=user.is_admin, is_active=user.is_active,
-                 project_manager=project_manager)
+                 project_manager=project_manager, user_id=user.id)
