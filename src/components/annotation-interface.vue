@@ -78,22 +78,6 @@ export default {
       }
       vueThis.loadingData = false
     })
-
-    // dataService.getTaskInfo(this.projectID, this.taskID).then(function(data) {
-    //   self.annotation_data = data.data?.meta?.new_annotation_data
-    //   if (self.annotation_data === undefined || self.annotation_data.length === 0) {
-    //     self.annotation_data = {}
-    //   }
-    //   for (let a of data.data.actors) {
-    //     self.actorsLabels[a.label] = a.name
-    //   }
-    //   self.actors = data.data.actors
-    //   for (let f of data.data.files) {
-    //     self.files[f.file.id] = f.file
-    //   }
-    // }).catch().then(function() {
-    //   self.loadingData = false
-    // })
   },
   computed: {
     filesForSelect: function () {
@@ -409,18 +393,6 @@ export default {
   position: relative;
 }
 
-/*
-div.selected-row-label {
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  font-weight: bold;
-  background-color: brown;
-  color: white;
-  padding: 2px 5px;
-}
-*/
-
 .ground-list .v-list-item-title {
   font-size: 0.8em;
 }
@@ -428,10 +400,6 @@ div.selected-row-label {
 #file-content {
   white-space: pre-wrap; /* Since CSS 2.1 */
   word-wrap: break-word; /* Internet Explorer 5.5+ */
-
-  /*  overflow-y: auto;
-    height: 100%;
-    flex-grow: 1;*/
 }
 
 .file-pane {
@@ -459,9 +427,4 @@ div.selected-row-label {
   padding: 0;
 }
 
-/*#pre-col {
-  display: flex;
-  flex-direction: column;
-
-}*/
 </style>
