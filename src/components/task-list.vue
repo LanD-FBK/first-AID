@@ -2,6 +2,7 @@
 import { useNewTaskStore, useLoginStore } from '@/store'
 import dataService from './dataService'
 import TaskAnnotations from '@/components/singleFileComponents/task-annotations.vue'
+import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
 
 function addChildren(obj, annotations, index) {
   if (Object.prototype.hasOwnProperty.call(annotations, index)) {
@@ -15,7 +16,8 @@ function addChildren(obj, annotations, index) {
 
 export default {
   components: {
-    TaskAnnotations
+    TaskAnnotations,
+    DynamicButton
   },
   emits: ['openNewProject'],
   data() {
@@ -147,27 +149,30 @@ export default {
           </template>
 
           <template v-slot:append>
-            <v-btn
+            <DynamicButton
               v-if="task.is_active"
               class="ms-3"
+              text="Add annotation"
               color="blue-lighten-1"
               icon="mdi-text-box-plus"
               @click="addAnnotation(task.id, 0)"
-            ></v-btn>
-            <v-btn
+            ></DynamicButton>
+            <DynamicButton
               v-if="task.is_active"
               class="ms-3"
+              text="Disable"
               color="red-lighten-1"
               icon="mdi-lock"
               @click="deactivateTask(task.id)"
-            ></v-btn>
-            <v-btn
+            ></DynamicButton>
+            <DynamicButton
               v-else
               class="ms-3"
+              text="Enable"
               color="green-lighten-1"
               icon="mdi-lock-open-variant"
               @click="activateTask(task.id)"
-            ></v-btn>
+            ></DynamicButton>
           </template>
         </v-list-item>
 

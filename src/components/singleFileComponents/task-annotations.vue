@@ -1,6 +1,11 @@
 <script>
+import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
+
 export default {
   name: 'TaskAnnotations',
+  components: {
+    DynamicButton
+  },
   emits: ['closeAnnotation', 'addAnnotation', 'reopenAnnotation', 'editAnnotation'],
   props: {
     annotations: Object,
@@ -42,34 +47,38 @@ export default {
         </v-avatar>
       </template>
       <template v-slot:append v-if="task.is_active">
-        <v-btn
+        <DynamicButton
           class="ms-3"
           v-if="annotation.closed"
+          text="Add annotation"
           color="blue-lighten-1"
           icon="mdi-text-box-plus"
           @click="addAnnotation(task.id, annotation.id)"
-        ></v-btn>
-        <v-btn
+        ></DynamicButton>
+        <DynamicButton
           class="ms-3"
           v-else
           color="yellow-lighten-1"
+          text="Edit annotation"
           icon="mdi-pencil"
           @click="editAnnotation(task.id, annotation.id)"
-        ></v-btn>
-        <v-btn
+        ></DynamicButton>
+        <DynamicButton
           class="ms-3"
           v-if="isManager && annotation.closed"
           color="yellow-lighten-1"
+          text="Reopen annotation"
           icon="mdi-text-box-edit"
           @click="reopenAnnotation(task.id, annotation.id)"
-        ></v-btn>
-        <v-btn
+        ></DynamicButton>
+        <DynamicButton
           class="ms-3"
           v-else
           color="yellow-lighten-1"
+          text="Confirm annotation"
           icon="mdi-text-box-check"
           @click="closeAnnotation(task.id, annotation.id)"
-        ></v-btn>
+        ></DynamicButton>
       </template>
     </v-list-item>
 

@@ -512,13 +512,14 @@ export default {
                   @click.stop="manageUsers()"
                 />
                 <DynamicButton
-                  :icon="'mdi-format-list-checks'"
-                  :text="'Manage Tasks'"
+                  icon="mdi-format-list-checks"
+                  text="Manage Tasks"
                   @click.stop="manageTasks()"
                 />
                 <DynamicButton
-                  :icon="'mdi-trash-can-outline'"
-                  :text="'Delete'"
+                  icon="mdi-trash-can-outline"
+                  text="Delete"
+                  color="error"
                   @click.stop="$emit('deleteProject')"
                 />
               </v-card-actions>
