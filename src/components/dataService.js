@@ -128,17 +128,15 @@ export default {
     return axios({
       method: 'post',
       url: '/projects/' + projectID + '/file/',
-      data: form,
-  })
+      data: form
+    })
   },
 
   deleteProjectFiles: function (projectID, documentID) {
     const requestBody = [documentID]
-    console.log(typeof requestBody)
-    return axios.delete('/projects/' + projectID + '/file/delete/', {
-      data: {
-        0: requestBody
-      }
+    console.log(typeof documentID)
+    return axios.delete('/projects/' + projectID + '/file/delete', {
+      data: requestBody
     })
   },
 
@@ -190,15 +188,15 @@ export default {
     return axios.get(endpoint)
   },
 
-  deleteTask: function(projectID, taskID){
+  deleteTask: function (projectID, taskID) {
     return axios.delete('/projects/' + projectID + '/tasks/' + taskID)
   },
 
-  activateTask: function(projectID, taskID){
+  activateTask: function (projectID, taskID) {
     return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/activate/')
   },
 
-  deactivateTask: function(projectID, taskID){
+  deactivateTask: function (projectID, taskID) {
     return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/deactivate/')
   },
 
@@ -207,11 +205,11 @@ export default {
     return axios.get('/projects/' + projectID + '/file/' + fileID + '/content')
   },
 
-  getAllAnnotations: function(projectID, taskID){
+  getAllAnnotations: function (projectID, taskID) {
     return axios.get('/projects/' + projectID + '/tasks/' + taskID + '/annotations')
   },
 
-  createAnnotation: function(projectID, taskID, annotations, comment, parent){
+  createAnnotation: function (projectID, taskID, annotations, comment, parent) {
     return axios.post('/projects/' + projectID + '/tasks/' + taskID + '/annotations/', {
       annotations: annotations,
       comment: comment,
@@ -219,27 +217,35 @@ export default {
     })
   },
 
-  getAnnotation: function(projectID, taskID, annotationID){
+  getAnnotation: function (projectID, taskID, annotationID) {
     return axios.get('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID)
   },
 
-  editAnnotation: function(projectID, taskID, annotationID, annotations, comment){
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID, {
+  editAnnotation: function (projectID, taskID, annotationID, annotations, comment) {
+    return axios.patch(
+      '/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID,
+      {
         annotations: annotations,
-      comment: comment
-    }
+        comment: comment
+      }
     )
   },
 
-  deleteAnnotation: function(projectID, taskID, annotationID){
-    return axios.delete('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID)
+  deleteAnnotation: function (projectID, taskID, annotationID) {
+    return axios.delete(
+      '/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID
+    )
   },
 
-  closeAnnotation: function(projectID, taskID, annotationID){
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID + '/close')
+  closeAnnotation: function (projectID, taskID, annotationID) {
+    return axios.patch(
+      '/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID + '/close'
+    )
   },
 
-  reopenAnnotation: function(projectID, taskID, annotationID){
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID + '/reopen')
-  },
+  reopenAnnotation: function (projectID, taskID, annotationID) {
+    return axios.patch(
+      '/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID + '/reopen'
+    )
+  }
 }
