@@ -11,8 +11,8 @@ export default {
       newTaskStore: useNewTaskStore(),
       usersList: undefined,
       newTaskStatus: {
-        isDialogActive: false, 
-        users: undefined, 
+        isDialogActive: false,
+        users: undefined,
         files: undefined
       },
 
@@ -145,8 +145,7 @@ export default {
         }
       ],
       users: undefined,
-      files: undefined,
-
+      files: undefined
     }
   },
   methods: {
@@ -182,7 +181,7 @@ export default {
           })
           .catch(function (error) {
             self.errorDialog = true
-            self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
+            self.errorUserDialogText = String(error.message + ': ' + error.response.statusText)
           })
       }
     },
@@ -211,7 +210,7 @@ export default {
             })
             .catch(function (error) {
               self.errorDialog = true
-              self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
+              self.errorUserDialogText = String(error.message + ': ' + error.response.statusText)
               self.loadingCreateUser = false
               //Also clear all fields? Maybe watch() can be used?
             })
@@ -250,7 +249,7 @@ export default {
             })
             .catch(function (error) {
               self.errorDialog = true
-              self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
+              self.errorUserDialogText = String(error.message + ': ' + error.response.statusText)
               console.log(error)
             })
         } else {
@@ -285,7 +284,7 @@ export default {
         })
         .catch(function (error) {
           self.errorDialog = true
-          self.errorUserDialogText = String(error.message + ": " + error.response.statusText)
+          self.errorUserDialogText = String(error.message + ': ' + error.response.statusText)
         })
     },
 
@@ -319,7 +318,7 @@ export default {
           console.log(error)
           self.initialDataButtonLoading = false
           self.initialDataError = true
-          self.initialDataErrorStatus = String(error.message + ": " + error.response.statusText)
+          self.initialDataErrorStatus = String(error.message + ': ' + error.response.statusText)
         })
     },
     //New turn Data retrieval and handling
@@ -351,7 +350,7 @@ export default {
           console.log(error)
           self.newTurnButtonLoading = false
           self.newTurnError = true
-          self.newTurnErrorMessage = String(error.message + ": " + error.response.statusText)
+          self.newTurnErrorMessage = String(error.message + ': ' + error.response.statusText)
         })
     },
 
@@ -414,7 +413,9 @@ export default {
           .catch(function (error) {
             console.log(error)
             self.dialogNewTaskError = true
-            self.dialogNewTaskErrorMessage = String(error.message + ": " + error.response.statusText)
+            self.dialogNewTaskErrorMessage = String(
+              error.message + ': ' + error.response.statusText
+            )
             self.loadingSubmitNewTask = false
           })
       }
@@ -538,7 +539,6 @@ export default {
 
     //Refreshes the variable everytime users' details get changed
     //Everytime the variable need a refresh it gets set to 'undefined'
-    //Eager watcher so it fetches the list on page load
     usersList: {
       handler(newValue, oldValue) {
         const self = this
@@ -579,10 +579,10 @@ export default {
         }
       }
     },
-    initialDataTaskSelection(newValue, oldValue){
-      if(newValue == 'empty' && oldValue !== undefined){
+    initialDataTaskSelection(newValue, oldValue) {
+      if (newValue == 'empty' && oldValue !== undefined) {
         console.log('watcher empty')
-        for (let role of this.newTaskRoles){
+        for (let role of this.newTaskRoles) {
           role.id = ''
           role.name = ''
         }
@@ -636,8 +636,8 @@ export default {
       }
     }
   },
-  provide(){
-    return{
+  provide() {
+    return {
       newTaskStatus: this.newTaskStatus
     }
   }
@@ -647,29 +647,18 @@ export default {
 <template>
   <v-app>
     <v-app-bar color="primary">
-      <v-app-bar-nav-icon
-        icon="mdi-abacus"
-        @click="this.$router.push({ name: 'projects' })"
-      ></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon icon="mdi-abacus" @click="this.$router.push({ name: 'projects' })"></v-app-bar-nav-icon>
       <v-toolbar-title>Annotation Interface</v-toolbar-title>
       <v-menu v-if="isAdmin">
         <template v-slot:activator="{ props }">
           <v-btn v-bind="props">Manage Users</v-btn>
         </template>
         <v-list>
-          <v-list-item prepend-icon="mdi-account-plus-outline" @click="dialogCreateUser = true"
-            >New User</v-list-item
-          >
-          <v-list-item
-            prepend-icon="mdi-account-edit-outline"
-            @click="openDeleteEditUserDialog('edit')"
-            >Edit User</v-list-item
-          >
-          <v-list-item
-            prepend-icon="mdi-account-remove-outline"
-            @click="openDeleteEditUserDialog('delete')"
-            >Delete User</v-list-item
-          >
+          <v-list-item prepend-icon="mdi-account-plus-outline" @click="dialogCreateUser = true">New User</v-list-item>
+          <v-list-item prepend-icon="mdi-account-edit-outline" @click="openDeleteEditUserDialog('edit')">Edit
+            User</v-list-item>
+          <v-list-item prepend-icon="mdi-account-remove-outline" @click="openDeleteEditUserDialog('delete')">Delete
+            User</v-list-item>
         </v-list>
       </v-menu>
 
@@ -677,94 +666,53 @@ export default {
         <template v-slot:activator="{ props }">
           <v-btn prepend-icon="mdi-account-circle-outline" v-bind="props">{{
             loginStore.username
-          }}</v-btn>
+            }}</v-btn>
         </template>
         <v-list>
-          <v-list-item @click="this.$router.push({ name: 'changePassword' })"
-            >Change Password</v-list-item
-          >
+          <v-list-item @click="this.$router.push({ name: 'changePassword' })">Change Password</v-list-item>
           <v-list-item @click="ds.logout()">Logout</v-list-item>
         </v-list>
       </v-menu>
-      <v-btn @click="this.newTaskStatus.isDialogActive = true">{{ String(this.newTaskStatus.isDialogActive) }}</v-btn>
     </v-app-bar>
     <v-main>
       <!--Create User dialog-->
       <v-dialog v-model="dialogCreateUser" :max-width="variablesStore.dialogMaxWidth">
         <v-card prepend-icon="mdi-account-plus-outline" title="Create New User">
-          <v-form
-            v-model="validNewUserData"
-            :rules="rulesCreateUser"
-            @submit.prevent="submitNewUser"
-          >
+          <v-form v-model="validNewUserData" :rules="rulesCreateUser" @submit.prevent="submitNewUser">
             <v-card-text>
-              <v-text-field
-                label="Username"
-                required
-                v-model="newUserUsername"
-                :rules="rulesCreateUser"
-              />
-              <v-text-field
-                label="Email"
-                required
-                v-model="newUserEmail"
-                :rules="rulesCreateUser"
-                type="email"
-              />
-              <v-text-field
-                label="Password"
-                required
-                v-model="newUserPassword"
-                :rules="rulesCreateUser"
+              <v-text-field label="Username" required v-model="newUserUsername" :rules="rulesCreateUser" />
+              <v-text-field label="Email" required v-model="newUserEmail" :rules="rulesCreateUser" type="email" />
+              <v-text-field label="Password" required v-model="newUserPassword" :rules="rulesCreateUser"
                 :type="showNewUserPassword ? 'text' : 'password'"
                 :append-icon="showNewUserPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="showNewUserPassword = !showNewUserPassword"
-                :error="isNewUserPasswordError"
-                :error-messages="newUserPasswordErrorMessage"
-              />
-              <v-text-field
-                label="Password check"
-                required
-                v-model="newUserPasswordCheck"
-                :rules="rulesCreateUser"
+                @click:append="showNewUserPassword = !showNewUserPassword" :error="isNewUserPasswordError"
+                :error-messages="newUserPasswordErrorMessage" />
+              <v-text-field label="Password check" required v-model="newUserPasswordCheck" :rules="rulesCreateUser"
                 :type="showNewUserPasswordCheck ? 'text' : 'password'"
                 :append-icon="showNewUserPasswordCheck ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="showNewUserPasswordCheck = !showNewUserPasswordCheck"
-                :error="isNewUserPasswordError"
-                :error-messages="newUserPasswordErrorMessage"
-              />
+                @click:append="showNewUserPasswordCheck = !showNewUserPasswordCheck" :error="isNewUserPasswordError"
+                :error-messages="newUserPasswordErrorMessage" />
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn @click="dialogCreateUser = false" text="Cancel" />
-              <v-btn
-                color="primary"
-                variant="tonal"
-                :loading="loadingCreateUser"
-                type="submit"
-                text="Create"
-              />
+              <v-btn color="primary" variant="tonal" :loading="loadingCreateUser" type="submit" text="Create" />
             </v-card-actions>
           </v-form>
         </v-card>
       </v-dialog>
 
       <v-dialog v-model="errorDialog" :max-width="variablesStore.errorMaxWidth">
-        <v-card
-          title="Error!"
-          prepend-icon="mdi-alert-circle"
-          color="error"
-          :text="errorUserDialogText + '. Please try again.'"
-        >
+        <v-card title="Error!" prepend-icon="mdi-alert-circle" color="error"
+          :text="errorUserDialogText + '. Please try again.'">
           <v-card-actions>
             <v-btn @click="errorDialog = false" text="Close"></v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
-      <v-snackbar v-model="successNewUserSnackbar" timeout="2000"
-        >New User created successfully!
+      <v-snackbar v-model="successNewUserSnackbar" timeout="2000">New User created successfully!
         <template v-slot:actions>
           <v-btn color="blue" variant="text" @click="successNewUserSnackbar = false"> Close </v-btn>
         </template>
@@ -773,21 +721,12 @@ export default {
       <!--Edit user dialog-->
       <v-dialog v-model="dialogEditUser" :max-width="variablesStore.dialogMaxWidth">
         <v-card prepend-icon="mdi-account-edit-outline" title="Edit User">
-          <v-progress-circular
-            indeterminate
-            class="mx-auto"
-            v-if="usersList == undefined"
-          ></v-progress-circular>
+          <v-progress-circular indeterminate class="mx-auto" v-if="usersList == undefined"></v-progress-circular>
           <v-list lines="two" v-else>
             <v-list-subheader>Select the User to edit</v-list-subheader>
-            <v-list-item
-              prepend-icon="mdi-account-circle-outline"
-              v-for="user in usersList"
-              :key="user.id"
-              :title="user.username"
-              :subtitle="user.email"
-              @click="openUserModifyDialog(user.username, user.email, user.is_active, user.id)"
-            >
+            <v-list-item prepend-icon="mdi-account-circle-outline" v-for="user in usersList" :key="user.id"
+              :title="user.username" :subtitle="user.email"
+              @click="openUserModifyDialog(user.username, user.email, user.is_active, user.id)">
               <template v-slot:append>
                 <v-icon icon="mdi-pencil" />
               </template>
@@ -803,50 +742,28 @@ export default {
 
       <v-dialog v-model="dialogModifyUserDetails" :max-width="variablesStore.dialogMaxWidth">
         <v-card title="Edit User" prepend-icon="mdi-account-edit-outline">
-          <v-form
-            @submit.prevent="submitEditUser"
-            v-model="validEditUserData"
-            :ruiles="rulesCreateUser"
-          >
+          <v-form @submit.prevent="submitEditUser" v-model="validEditUserData" :ruiles="rulesCreateUser">
             <v-card-text>
               <v-row dense>
                 <v-col cols="12" md="9" sm="9">
-                  <v-text-field
-                    label="Username"
-                    type="text"
-                    v-model="editUserUsername"
-                    :rules="rulesCreateUser"
-                  ></v-text-field>
+                  <v-text-field label="Username" type="text" v-model="editUserUsername"
+                    :rules="rulesCreateUser"></v-text-field>
                 </v-col>
                 <v-col cols="12" md="3" sm="3">
-                  <v-checkbox
-                    label="Is Active"
-                    class="ml-2"
-                    v-model="editUserIsActive"
+                  <v-checkbox label="Is Active" class="ml-2" v-model="editUserIsActive"
                     :undefined="editUserIsActiveLoading ? true : false"
-                    :disabled="editUserIsActiveLoading ? true : false"
-                  ></v-checkbox>
+                    :disabled="editUserIsActiveLoading ? true : false"></v-checkbox>
                 </v-col>
                 <v-col cols="12">
                   <v-text-field label="Email" type="email" v-model="editUserEmail"></v-text-field>
-                  <v-text-field
-                    label="Password"
-                    :type="showEditUserPassword ? 'text' : 'password'"
+                  <v-text-field label="Password" :type="showEditUserPassword ? 'text' : 'password'"
                     :append-icon="showEditUserPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                    @click:append="showEditUserPassword = !showEditUserPassword"
-                    v-model="editUserPassword"
-                    :error="isEditUserPasswordError"
-                    :error-messages="editPasswordErrorMessage"
-                  ></v-text-field>
-                  <v-text-field
-                    label="Password Check"
-                    :type="showEditUserPasswordCheck ? 'text' : 'password'"
+                    @click:append="showEditUserPassword = !showEditUserPassword" v-model="editUserPassword"
+                    :error="isEditUserPasswordError" :error-messages="editPasswordErrorMessage"></v-text-field>
+                  <v-text-field label="Password Check" :type="showEditUserPasswordCheck ? 'text' : 'password'"
                     :append-icon="showEditUserPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                    @click:append="showEditUserPassword = !showEditUserPassword"
-                    v-model="editUSerPasswordCheck"
-                    :error="isEditUserPasswordError"
-                    :error-messages="editPasswordErrorMessage"
-                  ></v-text-field>
+                    @click:append="showEditUserPassword = !showEditUserPassword" v-model="editUSerPasswordCheck"
+                    :error="isEditUserPasswordError" :error-messages="editPasswordErrorMessage"></v-text-field>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -854,13 +771,7 @@ export default {
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn @click="dialogModifyUserDetails = false" text="Back" />
-              <v-btn
-                color="primary"
-                variant="tonal"
-                :loading="loadingModifyUserDetails"
-                type="submit"
-                text="Confirm"
-              />
+              <v-btn color="primary" variant="tonal" :loading="loadingModifyUserDetails" type="submit" text="Confirm" />
             </v-card-actions>
           </v-form>
         </v-card>
@@ -869,21 +780,11 @@ export default {
       <!--Delete user dialog-->
       <v-dialog v-model="dialogDeleteUser" :max-width="variablesStore.dialogMaxWidth">
         <v-card prepend-icon="mdi-account-remove-outline" title="Delete User">
-          <v-progress-circular
-            indeterminate
-            class="mx-auto"
-            v-if="usersList == undefined"
-          ></v-progress-circular>
+          <v-progress-circular indeterminate class="mx-auto" v-if="usersList == undefined"></v-progress-circular>
           <v-list lines="two" v-else>
             <v-list-subheader>Select Users to delete</v-list-subheader>
-            <v-list-item
-              prepend-icon="mdi-account-circle-outline"
-              v-for="user in usersList"
-              :key="user.id"
-              :title="user.username"
-              :subtitle="user.email"
-              @click="openWarningDeleteDialog(user.id, user.username)"
-            >
+            <v-list-item prepend-icon="mdi-account-circle-outline" v-for="user in usersList" :key="user.id"
+              :title="user.username" :subtitle="user.email" @click="openWarningDeleteDialog(user.id, user.username)">
               <template v-slot:append>
                 <v-icon icon="mdi-delete-outline" />
               </template>
@@ -898,16 +799,10 @@ export default {
       </v-dialog>
 
       <v-dialog v-model="dialogWarnDeleteUser" :max-width="variablesStore.errorMaxWidth">
-        <v-card
-          color="warning"
-          prepend-icon="mdi-alert"
-          title="Are you sure?"
-          :text="
-            'Do you really want to delete user ' +
-            deletingUserName +
-            '? This action cannot be undone'
-          "
-        >
+        <v-card color="warning" prepend-icon="mdi-alert" title="Are you sure?" :text="'Do you really want to delete user ' +
+          deletingUserName +
+          '? This action cannot be undone'
+          ">
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn text="Back" @click="dialogWarnDeleteUser = false"></v-btn>
@@ -919,20 +814,11 @@ export default {
       <!--New project dialog-->
       <v-dialog v-model="dialogCreateProject" :max-width="variablesStore.dialogMaxWidth">
         <v-card prepend-icon="mdi-plus" title="Create New Project">
-          <v-form
-            @submit.prevent="submitNewProject"
-            v-model="validNewProjectData"
-            :rules="rulesCreateProject"
-          >
+          <v-form @submit.prevent="submitNewProject" v-model="validNewProjectData" :rules="rulesCreateProject">
             <v-card-text>
               <v-row dense>
                 <v-col cols="12" md="9" sm="9">
-                  <v-text-field
-                    label="Project Name"
-                    required
-                    v-model="projectName"
-                    :rules="rulesCreateProject"
-                  />
+                  <v-text-field label="Project Name" required v-model="projectName" :rules="rulesCreateProject" />
                 </v-col>
 
                 <v-col cols="12" md="3" sm="3" class="d-flex justify-center">
@@ -940,34 +826,22 @@ export default {
                 </v-col>
 
                 <v-col cols="12">
-                  <v-progress-circular
-                    indeterminate
-                    v-if="usersList == undefined"
-                  ></v-progress-circular>
+                  <v-progress-circular indeterminate v-if="usersList == undefined"></v-progress-circular>
                   <v-list v-else>
                     <v-list-subheader>Select Users</v-list-subheader>
                     <v-list-item v-for="user in usersList" :key="user.id">
                       <!--Prepend checkbox for project inclusion-->
                       <template v-slot:prepend>
                         <v-list-item-action>
-                          <v-checkbox-btn
-                            v-model="projectUsersList"
-                            :value="user.id"
-                          ></v-checkbox-btn>
+                          <v-checkbox-btn v-model="projectUsersList" :value="user.id"></v-checkbox-btn>
                         </v-list-item-action>
                       </template>
 
                       <template v-slot:append>
                         <v-list-item-action>
-                          <v-switch
-                            v-model="adminUsersList"
-                            hide-details
-                            hint="Is Project Admin?"
-                            persistent-hint
-                            :label="isProjectAdminDisplay(user.id)"
-                            :value="user.id"
-                            :disabled="isAdminButtonDisabled(user.id)"
-                          ></v-switch>
+                          <v-switch v-model="adminUsersList" hide-details hint="Is Project Admin?" persistent-hint
+                            :label="isProjectAdminDisplay(user.id)" :value="user.id"
+                            :disabled="isAdminButtonDisabled(user.id)"></v-switch>
                         </v-list-item-action>
                       </template>
 
@@ -976,9 +850,8 @@ export default {
                     </v-list-item>
                   </v-list>
                 </v-col>
-                <small class="text-caption text-medium-emphasis"
-                  >These users will be able to access this project.</small
-                >
+                <small class="text-caption text-medium-emphasis">These users will be able to access this
+                  project.</small>
               </v-row>
             </v-card-text>
 
@@ -989,248 +862,159 @@ export default {
 
               <v-btn text="Cancel" variant="plain" @click="dialogCreateProject = false"></v-btn>
 
-              <v-btn
-                color="primary"
-                text="Create"
-                variant="tonal"
-                type="submit"
-                :loading="loadingCreateProject"
-              ></v-btn>
+              <v-btn color="primary" text="Create" variant="tonal" type="submit"
+                :loading="loadingCreateProject"></v-btn>
             </v-card-actions>
           </v-form>
         </v-card>
       </v-dialog>
 
-          <!--New Task Dialog-->
-    <v-dialog v-model="newTaskStatus.isDialogActive" max-width="90%">
-      <v-card title="Add New Task" prepend-icon="mdi-file-document-plus-outline">
-        <v-form v-model="validNewTaskData" :rules="rulesNewTask" @submit.prevent="submitNewTask">
-          <v-card-text>
-            <v-row dense>
-              <v-col cols="12" md="8" sm="8">
-                <v-text-field label="Task Name" required v-model="taskName" :rules="rulesNewTask" />
-              </v-col>
+      <!--New Task Dialog-->
+      <v-dialog v-model="newTaskStatus.isDialogActive" max-width="90%">
+        <v-card title="Add New Task" prepend-icon="mdi-file-document-plus-outline">
+          <v-form v-model="validNewTaskData" :rules="rulesNewTask" @submit.prevent="submitNewTask">
+            <v-card-text>
+              <v-row dense>
+                <v-col cols="12" md="8" sm="8">
+                  <v-text-field label="Task Name" required v-model="taskName" :rules="rulesNewTask" />
+                </v-col>
 
-              <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
-                <v-select
-                  label="Language"
-                  v-model="selectedTaskLanguage"
-                  :items="newTaskStore.language"
-                  item-title="complete"
-                  item-value="apiFormat"
-                />
-              </v-col>
-              <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
-                <v-checkbox label="Is Active" v-model="isNewTaskActive"></v-checkbox>
-              </v-col>
+                <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
+                  <v-select label="Language" v-model="selectedTaskLanguage" :items="newTaskStore.language"
+                    item-title="complete" item-value="apiFormat" />
+                </v-col>
+                <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
+                  <v-checkbox label="Is Active" v-model="isNewTaskActive"></v-checkbox>
+                </v-col>
 
-              <!--Users list-->
-              <v-col cols="6">
-                <v-list height="200px">
-                  <v-list-subheader>Select users</v-list-subheader>
-                  <v-list-item
-                    v-for="user in users"
-                    :key="user.user.id"
-                    :title="user.user.username"
-                    :subtitle="user.user.email"
-                  >
-                    <template v-slot:prepend>
-                      <v-list-item-action>
-                        <v-checkbox-btn v-model="newTaskUsers" :value="user.user.id" />
-                      </v-list-item-action>
+                <!--Users list-->
+                <v-col cols="6">
+                  <v-list height="200px">
+                    <v-list-subheader>Select users</v-list-subheader>
+                    <v-list-item v-for="user in users" :key="user.user.id" :title="user.user.username"
+                      :subtitle="user.user.email">
+                      <template v-slot:prepend>
+                        <v-list-item-action>
+                          <v-checkbox-btn v-model="newTaskUsers" :value="user.user.id" />
+                        </v-list-item-action>
+                      </template>
+                    </v-list-item>
+                  </v-list>
+                </v-col>
+
+                <!--Files list-->
+                <v-col cols="6">
+                  <v-list height="200px">
+                    <v-list-subheader>Select files</v-list-subheader>
+                    <v-list-item v-for="file of files" :key="file.id" :title="file.name"
+                      :subtitle="'File ID: ' + file.id">
+                      <template v-slot:prepend>
+                        <v-list-item-action>
+                          <v-checkbox-btn v-model="newTaskFiles" :value="file.id" />
+                        </v-list-item-action>
+                      </template>
+                    </v-list-item>
+                  </v-list>
+                </v-col>
+
+                <!--Initial Data and New Turn-->
+                <v-col cols="6">
+                  <v-select label="Initial Data" v-model="initialDataTaskSelection" :items="newTaskStore.initialData"
+                    item-title="complete" item-value="apiFormat"></v-select>
+                  <!-- text-field and select are enabled only when initial data is 'pre-filled'-->
+                  <v-text-field v-model="initialDataEndpoint" label="URL" :disabled="isInitialDataFormDisabled"
+                    :error="initialDataError" :error-messages="initialDataErrorStatus">
+                    <template v-slot:append>
+                      <v-btn text="Go" @click="getInitialData()" variant="tonal" :loading="initialDataButtonLoading" />
                     </template>
-                  </v-list-item>
-                </v-list>
-              </v-col>
-
-              <!--Files list-->
-              <v-col cols="6">
-                <v-list height="200px">
-                  <v-list-subheader>Select files</v-list-subheader>
-                  <v-list-item
-                    v-for="file of files"
-                    :key="file.id"
-                    :title="file.name"
-                    :subtitle="'File ID: ' + file.id"
-                  >
-                    <template v-slot:prepend>
-                      <v-list-item-action>
-                        <v-checkbox-btn v-model="newTaskFiles" :value="file.id" />
-                      </v-list-item-action>
+                  </v-text-field>
+                  <v-select v-model="selectedInitialDataGenerationMethod" label="Generation Method"
+                    :items="initialDataMethods" :disabled="isInitialDataSelectionDisabled"></v-select>
+                </v-col>
+                <v-col cols="6">
+                  <v-select label="New Turn" v-model="newTurnTaskSelection" :items="newTaskStore.newTurn"
+                    item-title="complete" item-value="apiFormat"></v-select>
+                  <v-text-field v-model="newTurnEndpoint" label="URL" :disabled="isNewTurnFormDisabled"
+                    :error="newTurnError" :error-messages="newTurnErrorMessage">
+                    <template v-slot:append>
+                      <v-btn text="Go" @click="getNewTurn()" variant="tonal" :loading="newTurnButtonLoading" />
                     </template>
-                  </v-list-item>
-                </v-list>
-              </v-col>
+                  </v-text-field>
+                  <v-select v-model="selectedNewTurnGenerationMethod" label="Generation Method" :items="newTurnMethods"
+                    :disabled="isNewTurnSelectionDisabled"></v-select>
+                </v-col>
 
-              <!--Initial Data and New Turn-->
-              <v-col cols="6">
-                <v-select
-                  label="Initial Data"
-                  v-model="initialDataTaskSelection"
-                  :items="newTaskStore.initialData"
-                  item-title="complete"
-                  item-value="apiFormat"
-                ></v-select>
-                <!-- text-field and select are enabled only when initial data is 'pre-filled'-->
-                <v-text-field
-                  v-model="initialDataEndpoint"
-                  label="URL"
-                  :disabled="isInitialDataFormDisabled"
-                  :error="initialDataError"
-                  :error-messages="initialDataErrorStatus"
-                >
-                  <template v-slot:append>
-                    <v-btn
-                      text="Go"
-                      @click="getInitialData()"
-                      variant="tonal"
-                      :loading="initialDataButtonLoading"
-                    />
-                  </template>
-                </v-text-field>
-                <v-select
-                  v-model="selectedInitialDataGenerationMethod"
-                  label="Generation Method"
-                  :items="initialDataMethods"
-                  :disabled="isInitialDataSelectionDisabled"
-                ></v-select>
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  label="New Turn"
-                  v-model="newTurnTaskSelection"
-                  :items="newTaskStore.newTurn"
-                  item-title="complete"
-                  item-value="apiFormat"
-                ></v-select>
-                <v-text-field
-                  v-model="newTurnEndpoint"
-                  label="URL"
-                  :disabled="isNewTurnFormDisabled"
-                  :error="newTurnError"
-                  :error-messages="newTurnErrorMessage"
-                >
-                  <template v-slot:append>
-                    <v-btn
-                      text="Go"
-                      @click="getNewTurn()"
-                      variant="tonal"
-                      :loading="newTurnButtonLoading"
-                    />
-                  </template>
-                </v-text-field>
-                <v-select
-                  v-model="selectedNewTurnGenerationMethod"
-                  label="Generation Method"
-                  :items="newTurnMethods"
-                  :disabled="isNewTurnSelectionDisabled"
-                ></v-select>
-              </v-col>
-
-              <!--Roles list-->
-              <v-col cols="12">
-                <!--
+                <!--Roles list-->
+                <v-col cols="12">
+                  <!--
                 <p class="text-body-1 mt-2">Roles</p>
                 -->
-                <!--TODO: set max height on container in order to avoid card buttons disappearing-->
-                <v-container fluid max-heigth="300px">
-                  <v-row dense v-for="role in newTaskRoles" :key="role.number">
-                    <v-col>
-                      <v-text-field
-                        v-model="role.id"
-                        :disabled="isNewTaskRolesDisabled"
-                        label="Speaker ID"
-                      >
-                        <template v-slot:prepend>
-                          <v-tooltip text="Speaker has ground">
-                            <template v-slot:activator="{ props }">
-                              <v-btn
-                                v-bind="props"
-                                :icon="role.ground ? 'mdi-file-document-check-outline' : 'mdi-file-document-remove-outline'"
-                                :color="role.ground ? 'primary' : ''"
-                                @click="role.ground = !role.ground"
-                                :disabled="isNewTaskRolesDisabled"
-                              />
-                            </template>
-                          </v-tooltip>
-                        </template>
-                      </v-text-field>
-                    </v-col>
-                    <v-col>
-                      <v-text-field
-                        v-model="role.name"
-                        :disabled="isNewTaskRolesDisabled"
-                        label="Speaker Role"
-                      >
-                        <template v-slot:append>
-                          <v-btn
-                            icon="mdi-trash-can-outline"
-                            variant="tonal"
-                            @click="deleteRole()"
-                            :disabled="isNewTaskRolesDeleteDisabled"
-                          />
-                        </template>
-                      </v-text-field>
-                    </v-col>
-                  </v-row>
-                  <v-btn
-                    class="mb-4"
-                    :disabled="isNewTaskRolesDisabled"
-                    variant="tonal"
-                    text="Add New Role"
-                    @click="addNewRole()"
-                  />
-                </v-container>
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-divider></v-divider>
+                  <!--TODO: set max height on container in order to avoid card buttons disappearing-->
+                  <v-container fluid max-heigth="300px">
+                    <v-row dense v-for="role in newTaskRoles" :key="role.number">
+                      <v-col>
+                        <v-text-field v-model="role.id" :disabled="isNewTaskRolesDisabled" label="Speaker ID">
+                          <template v-slot:prepend>
+                            <v-tooltip text="Speaker has ground">
+                              <template v-slot:activator="{ props }">
+                                <v-btn v-bind="props" :icon="role.ground
+                                    ? 'mdi-file-document-check-outline'
+                                    : 'mdi-file-document-remove-outline'
+                                  " :color="role.ground ? 'primary' : ''" @click="role.ground = !role.ground"
+                                  :disabled="isNewTaskRolesDisabled" />
+                              </template>
+                            </v-tooltip>
+                          </template>
+                        </v-text-field>
+                      </v-col>
+                      <v-col>
+                        <v-text-field v-model="role.name" :disabled="isNewTaskRolesDisabled" label="Speaker Role">
+                          <template v-slot:append>
+                            <v-btn icon="mdi-trash-can-outline" variant="tonal" @click="deleteRole()"
+                              :disabled="isNewTaskRolesDeleteDisabled" />
+                          </template>
+                        </v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-btn class="mb-4" :disabled="isNewTaskRolesDisabled" variant="tonal" text="Add New Role"
+                      @click="addNewRole()" />
+                  </v-container>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text="Cancel" variant="tonal" @click="newTaskStatus.isDialogActive = false" />
+              <!--type="submit"-->
+              <v-btn text="Create" type="submit" :loading="loadingSubmitNewTask" variant="tonal" color="primary" />
+            </v-card-actions>
+          </v-form>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="dialogDifferentMethodsError" :max-width="variablesStore.errorMaxWidth">
+        <v-card title="Error!" prepend-icon="mdi-alert-circle" color="error"
+          text="Different Generation Methods are selected!">
           <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text="Cancel" variant="tonal" @click="newTaskStatus.isDialogActive = false" />
-            <!--type="submit"-->
-            <v-btn
-              text="Create"
-              type="submit"
-              :loading="loadingSubmitNewTask"
-              variant="tonal"
-              color="primary"
-            />
+            <v-btn @click="dialogDifferentMethodsError = false" text="Close"></v-btn>
           </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="dialogDifferentMethodsError" :max-width="variablesStore.errorMaxWidth">
-      <v-card
-        title="Error!"
-        prepend-icon="mdi-alert-circle"
-        color="error"
-        text="Different Generation Methods are selected!"
-      >
-        <v-card-actions>
-          <v-btn @click="dialogDifferentMethodsError = false" text="Close"></v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </v-card>
+      </v-dialog>
 
-    <v-dialog v-model="dialogNewTaskError" :max-width="variablesStore.errorMaxWidth">
-      <v-card
-        title="Error!"
-        prepend-icon="mdi-alert-circle"
-        color="error"
-        :text="'Error! ' + dialogNewTaskErrorMessage"
-      >
-        <v-card-actions>
-          <v-btn @click="dialogNewTaskError = false" text="Close"></v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-snackbar v-model="snackbarNewTaskSuccess" timeout="2000"
-      >New Task created successfully!
-      <template v-slot:actions>
-        <v-btn color="blue" variant="text" @click="snackbarNewTaskSuccess = false"> Close </v-btn>
-      </template>
-    </v-snackbar>
+      <v-dialog v-model="dialogNewTaskError" :max-width="variablesStore.errorMaxWidth">
+        <v-card title="Error!" prepend-icon="mdi-alert-circle" color="error"
+          :text="'Error! ' + dialogNewTaskErrorMessage">
+          <v-card-actions>
+            <v-btn @click="dialogNewTaskError = false" text="Close"></v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-snackbar v-model="snackbarNewTaskSuccess" timeout="2000">New Task created successfully!
+        <template v-slot:actions>
+          <v-btn color="blue" variant="text" @click="snackbarNewTaskSuccess = false"> Close </v-btn>
+        </template>
+      </v-snackbar>
+      <!--TODO: move dialogCreateProject to list-item.vue -->
       <router-view :key="$route.path" @openNewProject="dialogCreateProject = true"></router-view>
     </v-main>
   </v-app>

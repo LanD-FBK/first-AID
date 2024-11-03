@@ -1,28 +1,23 @@
 <script>
-import dataService from '../dataService'
-import DynamicButton from './dynamic-button.vue'
 import { useNewTaskStore, useVariablesStore } from '@/store'
-import TaskDialog from './task-dialog.vue';
+import dataService from '../dataService'
 
 export default {
-  components: {
-    DynamicButton,
-    TaskDialog
+  props: {
+    users: Object,
+    files: Array,
+    projectID: Number
   },
-  inject: ['newTaskStatus'],
+
   data() {
     return {
+      ds: dataService,
       variablesStore: useVariablesStore(),
+      //Is this needed?
       newTaskStore: useNewTaskStore(),
-      dialogDocs: false,
-      dialogUsers: false,
-      loadingEditUsers: false,
-      dialogNewTask: this.newTaskStatus.isDialogActive,
-
-      //Manage Tasks vars
-      dialogTasks: false,
+      //New Task vars
+      dialogNewTask: false,
       loadingSubmitNewTask: false,
-      //TODO: add watcher to empty all fields on dialog closure
       snackbarNewTaskSuccess: false,
       dialogNewTaskError: false,
       dialogNewTaskErrorMessage: '',
@@ -76,103 +71,10 @@ export default {
           ground: true,
           number: 1
         }
-      ],
-
-      files: undefined,
-      uploadedFiles: undefined,
-      isUploadDocsDoneButtonEnabled: true,
-
-      dialogAddUserToProject: false,
-      editProjectAdminList: [],
-      editProjectUserSelect: []
+      ]
     }
   },
-  props: {
-    title: String,
-    users: Object,
-    id: Number,
-    tasks: Object,
-    isActive: Boolean
-  },
-  mounted: function () {
-    const self = this
-    dataService.getProjectFiles(this.id).then(function (data) {
-      self.files = data.data
-      console.log(self.files)
-    })
-  },
   methods: {
-    submitManageUsers: function () {
-      const self = this
-      this.loadingEditUsers = true
-      let submitAdminList = []
-      let submitUserList = []
-      for (let user of this.users) {
-        submitUserList.push(user.user_id)
-        if (this.editProjectAdminList.includes(user.user_id)) {
-          submitAdminList.push(true)
-        } else {
-          submitAdminList.push(false)
-        }
-      }
-      dataService
-        .editProject(this.id, this.title, this.isActive, submitUserList, submitAdminList)
-        .then(function (data) {
-          self.loadingEditUsers = false
-          self.dialogUsers = false
-        })
-        .catch(function (error) {
-          //Gestione errore
-        })
-    },
-    manageDocs: function (projectID) {
-      this.dialogDocs = true
-    },
-
-
-    testNewDoc: function () {
-      let files = document.getElementById('uploadFiles').files
-      console.log(files)
-      dataService.uploadFiles(this.id, files)
-    },
-
-    //Document handling
-    //Not working
-    addDocuments: function () {
-      //TODO: Add loading
-      const self = this
-      dataService.uploadFiles(this.id, this.uploadedFiles).then(function (data) {
-        console.log(data)
-        self.isUploadDocsDoneButtonEnabled = false
-      })
-    },
-    removeDocument: function (documentID) {
-      dataService.deleteProjectFiles(this.id, documentID).then(function (data) {
-        console.log(data)
-      })
-    },
-
-    manageUsers: function () {
-      this.dialogUsers = true
-      for (let user of this.users) {
-        if (user.is_project_admin) {
-          this.editProjectAdminList.push(user.user_id)
-        }
-      }
-      console.log(this.editProjectAdminList)
-    },
-
-    //Manage Tasks funcs
-    manageTasks: function () {
-      this.dialogTasks = true
-    },
-
-    openNewTask: function () {
-      this.dialogNewTask = true
-      this.newTaskStatus.users = this.users
-      this.newTaskStatus.files = this.files
-    },
-
     //Consider merge in one function
     //Initial Data retrieval and handling
     getInitialData: function () {
@@ -201,7 +103,7 @@ export default {
           console.log(error)
           self.initialDataButtonLoading = false
           self.initialDataError = true
-          self.initialDataErrorStatus = String(error.message + ": " + error.response.statusText)
+          self.initialDataErrorStatus = String(error.message + ': ' + error.response.statusText)
         })
     },
     //New turn Data retrieval and handling
@@ -231,7 +133,7 @@ export default {
           console.log(error)
           self.newTurnButtonLoading = false
           self.newTurnError = true
-          self.newTurnErrorMessage = String(error.message + ": " + error.response.statusText)
+          self.newTurnErrorMessage = String(error.message + ': ' + error.response.statusText)
         })
     },
 
@@ -274,7 +176,7 @@ export default {
         }
         dataService
           .addTaskToProject(
-            this.id,
+            this.projectID,
             this.taskName,
             this.initialDataTaskSelection,
             this.newTurnTaskSelection,
@@ -294,7 +196,9 @@ export default {
           .catch(function (error) {
             console.log(error)
             self.dialogNewTaskError = true
-            self.dialogNewTaskErrorMessage = String(error.message + ": " + error.response.statusText)
+            self.dialogNewTaskErrorMessage = String(
+              error.message + ': ' + error.response.statusText
+            )
             self.loadingSubmitNewTask = false
           })
       }
@@ -336,16 +240,6 @@ export default {
     }
   },
   computed: {
-    displaySize() {
-      return this.$vuetify.display.name
-    },
-    isButton() {
-      //If true screen size is 'md' or less, so we need to show icons instead of buttons
-      return this.$vuetify.display.mdAndDown ? true : false
-    },
-    isDeleteButtonEditProjectDialog() {
-      return this.editProjectUserSelect.length === 0 ? true : false
-    },
     isInitialDataFormDisabled() {
       console.log(this.initialDataTaskSelection)
       return this.initialDataTaskSelection === 'pre_compiled' ? false : true
@@ -369,14 +263,14 @@ export default {
       else if (!this.isInitialDataFormDisabled || !this.isNewTurnFormDisabled) return true
       return false
       /* if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
-        return true
-      else if (
-        (!this.isInitialDataFormDisabled &&
-          this.selectedInitialDataGenerationMethod == undefined) ||
-        (!this.isNewTurnFormDisabled && this.selectedNewTurnGenerationMethod == undefined)
-      )
-        return true
-      return false */
+              return true
+            else if (
+              (!this.isInitialDataFormDisabled &&
+                this.selectedInitialDataGenerationMethod == undefined) ||
+              (!this.isNewTurnFormDisabled && this.selectedNewTurnGenerationMethod == undefined)
+            )
+              return true
+            return false */
     },
     isNewTaskRolesDeleteDisabled() {
       if (this.newTaskRoles.length <= 2) return true
@@ -384,13 +278,7 @@ export default {
     }
   },
   watch: {
-    editProjectAdminList(newValue, oldValue) {
-      console.warn(newValue)
-    },
-    dialogUsers(newValue, oldValue) {
-      this.editProjectAdminList = []
-      this.editProjectUserSelect = []
-    },
+    //Not working, check why
     selectedInitialDataGenerationMethod(newValue, oldValue) {
       if (newValue != undefined) {
         if (
@@ -479,125 +367,148 @@ export default {
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12">
-        <v-card @click.prevent="this.$router.push({
-          name: 'tasks',
-          params: { projectID: this.id }
-        })">
-          <v-row align="center">
-            <v-col cols="12" sm="3" md="6" xl="6" xs="6">
-              <v-row class="d-flex justify-left">
-                <v-col>
-                  <v-card-title>{{ title }}</v-card-title>
-                  <v-card-subtitle>Project ID: {{ id }}. Project {{ isActive ? 'Active' : 'Inactive'
-                    }}</v-card-subtitle>
-                </v-col>
-                <!--
-                <v-col>
-                  <v-btn
-                    icon="mdi-pencil-circle-outline"
-                    class="ma-2"
-                    variant="plain"
-                    @click="console.log('icon')"
-                  />
-                </v-col>
-                -->
-              </v-row>
+  <v-btn color="primary" variant="elevated" @click.stop="dialogNewTask = true">Add New</v-btn>
+
+  <v-dialog v-model="dialogNewTask" max-width="90%">
+    <v-card title="Add New Task" prepend-icon="mdi-file-document-plus-outline">
+      <v-form v-model="validNewTaskData" :rules="rulesNewTask" @submit.prevent="submitNewTask">
+        <v-card-text>
+          <v-row dense>
+            <v-col cols="12" md="8" sm="8">
+              <v-text-field label="Task Name" required v-model="taskName" :rules="rulesNewTask" />
             </v-col>
-            <v-col cols="12" lg="6" sm="9" md="6" xl="6" xs="6">
-              <v-card-actions>
-                <DynamicButton :icon="'mdi-file-document-multiple-outline'" :text="'Manage Docs'"
-                  @click.stop="manageDocs(id)" />
-                <DynamicButton :icon="'mdi-account-circle-outline'" :text="'Manage Users'"
-                  @click.stop="manageUsers()" />
-                <DynamicButton :icon="'mdi-format-list-checks'" :text="'Manage Tasks'" @click.stop="manageTasks()" />
-                <DynamicButton :icon="'mdi-trash-can-outline'" :text="'Delete'" @click.stop="$emit('deleteProject')" />
-              </v-card-actions>
+
+            <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
+              <v-select label="Language" v-model="selectedTaskLanguage" :items="newTaskStore.language"
+                item-title="complete" item-value="apiFormat" />
+            </v-col>
+            <v-col cols="12" md="2" sm="2" class="d-flex justify-center">
+              <v-checkbox label="Is Active" v-model="isNewTaskActive"></v-checkbox>
+            </v-col>
+
+            <!--Users list-->
+            <v-col cols="6">
+              <v-list height="200px">
+                <v-list-subheader>Select users</v-list-subheader>
+                <v-list-item v-for="user in this.users" :key="user.user.id" :title="user.user.username"
+                  :subtitle="user.user.email">
+                  <template v-slot:prepend>
+                    <v-list-item-action>
+                      <v-checkbox-btn v-model="newTaskUsers" :value="user.user.id" />
+                    </v-list-item-action>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-col>
+
+            <!--Files list-->
+            <v-col cols="6">
+              <v-list height="200px">
+                <v-list-subheader>Select files</v-list-subheader>
+                <v-list-item v-for="file of files" :key="file.id" :title="file.name" :subtitle="'File ID: ' + file.id">
+                  <template v-slot:prepend>
+                    <v-list-item-action>
+                      <v-checkbox-btn v-model="newTaskFiles" :value="file.id" />
+                    </v-list-item-action>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-col>
+
+            <!--Initial Data and New Turn-->
+            <v-col cols="6">
+              <v-select label="Initial Data" v-model="initialDataTaskSelection" :items="newTaskStore.initialData"
+                item-title="complete" item-value="apiFormat"></v-select>
+              <!-- text-field and select are enabled only when initial data is 'pre-filled'-->
+              <v-text-field v-model="initialDataEndpoint" label="URL" :disabled="isInitialDataFormDisabled"
+                :error="initialDataError" :error-messages="initialDataErrorStatus">
+                <template v-slot:append>
+                  <v-btn text="Go" @click="getInitialData()" variant="tonal" :loading="initialDataButtonLoading" />
+                </template>
+              </v-text-field>
+              <v-select v-model="selectedInitialDataGenerationMethod" label="Generation Method"
+                :items="initialDataMethods" :disabled="isInitialDataSelectionDisabled"></v-select>
+            </v-col>
+            <v-col cols="6">
+              <v-select label="New Turn" v-model="newTurnTaskSelection" :items="newTaskStore.newTurn"
+                item-title="complete" item-value="apiFormat"></v-select>
+              <v-text-field v-model="newTurnEndpoint" label="URL" :disabled="isNewTurnFormDisabled"
+                :error="newTurnError" :error-messages="newTurnErrorMessage">
+                <template v-slot:append>
+                  <v-btn text="Go" @click="getNewTurn()" variant="tonal" :loading="newTurnButtonLoading" />
+                </template>
+              </v-text-field>
+              <v-select v-model="selectedNewTurnGenerationMethod" label="Generation Method" :items="newTurnMethods"
+                :disabled="isNewTurnSelectionDisabled"></v-select>
+            </v-col>
+
+            <!--Roles list-->
+            <v-col cols="12">
+              <!--
+                <p class="text-body-1 mt-2">Roles</p>
+                -->
+              <!--TODO: set max height on container in order to avoid card buttons disappearing-->
+              <v-container fluid max-heigth="300px">
+                <v-row dense v-for="role in newTaskRoles" :key="role.number">
+                  <v-col>
+                    <v-text-field v-model="role.id" :disabled="isNewTaskRolesDisabled" label="Speaker ID">
+                      <template v-slot:prepend>
+                        <v-tooltip text="Speaker has ground">
+                          <template v-slot:activator="{ props }">
+                            <v-btn v-bind="props" :icon="role.ground
+                              ? 'mdi-file-document-check-outline'
+                              : 'mdi-file-document-remove-outline'
+                              " :color="role.ground ? 'primary' : ''" @click="role.ground = !role.ground"
+                              :disabled="isNewTaskRolesDisabled" />
+                          </template>
+                        </v-tooltip>
+                      </template>
+                    </v-text-field>
+                  </v-col>
+                  <v-col>
+                    <v-text-field v-model="role.name" :disabled="isNewTaskRolesDisabled" label="Speaker Role">
+                      <template v-slot:append>
+                        <v-btn icon="mdi-trash-can-outline" variant="tonal" @click="deleteRole()"
+                          :disabled="isNewTaskRolesDeleteDisabled" />
+                      </template>
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+                <v-btn class="mb-4" :disabled="isNewTaskRolesDisabled" variant="tonal" text="Add New Role"
+                  @click="addNewRole()" />
+              </v-container>
             </v-col>
           </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!--Manage Docs dialog-->
-    <!--TODO: add spacer before action buttons-->
-    <v-dialog v-model="dialogDocs" :max-width="variablesStore.dialogMaxWidth">
-      <v-card prepend-icon="mdi-file-document-multiple-outline" title="Manage Project Documents">
-        <v-card-text>
-          <v-progress-circular indeterminate class="mx-auto" v-if="files == undefined"></v-progress-circular>
-          <small v-else-if="files == 0" class="text-caption text-medium-emphasis">There are no files in this
-            project</small>
-          <v-list v-else>
-            <v-list-item variant="" v-for="file of files" :key="file.id" :title="file.name"
-              :subtitle="'File ID: ' + file.id">
-              <template v-slot:append>
-                <v-btn icon="mdi-delete" variant="flat" @click="removeDocument(file.id)" />
-              </template>
-            </v-list-item>
-          </v-list>
-          <input type="file" multiple id="uploadFiles" class="ma-2">
-          </input>
         </v-card-text>
-        <v-card-actions>
-          <v-btn @click="dialogDocs = false">Cancel</v-btn>
-          <v-btn color="primary" variant="outlined" @click="testNewDoc()">Upload</v-btn>
-          <v-btn color="primary" variant="flat" @click="dialogDocs = false"
-            :disabled="isUploadDocsDoneButtonEnabled">Done</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Manage users dialog-->
-    <v-dialog v-model="dialogUsers" :max-width="variablesStore.dialogMaxWidth">
-      <v-card prepend-icon="mdi-account-circle-outline" title="Manage Project Users">
-        <v-row dense>
-          <v-col cols="12">
-            <v-list lines="two">
-              <v-list-subheader>Select the User to edit</v-list-subheader>
-              <v-list-item v-for="user in users" :key="user.user.id">
-                <!--Prepend checkbox for project inclusion-->
-                <template v-slot:append>
-                  <v-list-item-action>
-                    <v-switch v-model="editProjectAdminList" hide-details hint="Is Project Admin?" persistent-hint
-                      :label="editProjectDialogAdminDisplay(user.user.id)" :value="user.user.id"></v-switch>
-                  </v-list-item-action>
-                </template>
-
-                <template v-slot:prepend>
-                  <v-list-item-action>
-                    <v-checkbox-btn v-model="editProjectUserSelect" :value="user.user.id"></v-checkbox-btn>
-                  </v-list-item-action>
-                </template>
-
-                <v-list-item-title>{{ user.user.username }}</v-list-item-title>
-                <v-list-item-subtitle> {{ user.user.email }}</v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-col>
-        </v-row>
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text="Remove Users" variant="tonal" color="error" :disabled="isDeleteButtonEditProjectDialog"></v-btn>
-          <v-btn text="Add New User" variant="tonal" color="primary" @click="dialogAddUserToProject = true"></v-btn>
-          <v-btn text="Done" variant="tonal" @click="submitManageUsers()"></v-btn>
+          <v-btn text="Cancel" variant="tonal" @click="dialogNewTask = false" />
+          <!--type="submit"-->
+          <v-btn text="Create" type="submit" :loading="loadingSubmitNewTask" variant="tonal" color="primary" />
         </v-card-actions>
-      </v-card>
-    </v-dialog>
+      </v-form>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="dialogDifferentMethodsError" :max-width="variablesStore.errorMaxWidth">
+    <v-card title="Error!" prepend-icon="mdi-alert-circle" color="error"
+      text="Different Generation Methods are selected!">
+      <v-card-actions>
+        <v-btn @click="dialogDifferentMethodsError = false" text="Close"></v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
-    <v-dialog v-model="dialogTasks" :max-width="variablesStore.dialogMaxWidth">
-      <v-card prepend-icon="mdi-format-list-checks" title="Manage Tasks">
-        <v-list lines="two">
-          <v-list-subheader>Select the task you wish to edit</v-list-subheader>
-          <v-list-item v-for="task of this.tasks" :key="task.id" :title="task.title" :subtitle="task.id">
-          </v-list-item>
-        </v-list>
-        <v-card-actions>
-          <TaskDialog :users="this.users" :files="this.files" />
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-container>
+  <v-dialog v-model="dialogNewTaskError" :max-width="variablesStore.errorMaxWidth">
+    <v-card title="Error!" prepend-icon="mdi-alert-circle" color="error" :text="'Error! ' + dialogNewTaskErrorMessage">
+      <v-card-actions>
+        <v-btn @click="dialogNewTaskError = false" text="Close"></v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-snackbar v-model="snackbarNewTaskSuccess" timeout="2000">New Task created successfully!
+    <template v-slot:actions>
+      <v-btn color="blue" variant="text" @click="snackbarNewTaskSuccess = false"> Close </v-btn>
+    </template>
+  </v-snackbar>
 </template>
