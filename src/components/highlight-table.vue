@@ -1,8 +1,13 @@
 <script>
-
 // From here: https://codepen.io/tahazsh/pen/WYywXW
 
 export default {
+  props: {
+    disabled: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       x: 0,
@@ -20,7 +25,7 @@ export default {
 
       // This timeout allows the browser to get che right selection.
       // If removed, the icon is still visible when clicking on the highlighted text.
-      setTimeout(function() {
+      setTimeout(function () {
         const selection = window.getSelection()
 
         // This is zero only after the timeout
@@ -34,7 +39,7 @@ export default {
           vueThis.showTools = false
           return
         }
-        vueThis.x = x + (width / 2)
+        vueThis.x = x + width / 2
         vueThis.y = y + window.scrollY - 10
         vueThis.showTools = true
         vueThis.selectedText = selection.toString()
@@ -49,10 +54,11 @@ export default {
 
     handleAction() {
       this.showTools = false
-      this.$emit('link', this.selectedText, this.startOffset, this.endOffset)
+      if (!this.disabled) {
+        this.$emit('link', this.selectedText, this.startOffset, this.endOffset)
+      }
     }
   }
-
 }
 </script>
 
@@ -66,19 +72,23 @@ export default {
         top: `${y}px`
       }"
     >
-      <span
+      <v-icon
+        icon="mdi-link-variant-plus"
         class="highlight-item"
+        :class="{'disabled': disabled}"
         @click.prevent.stop="handleAction()"
-      >
-        <i class="mdi-link-variant-plus mdi v-icon notranslate v-theme--light v-icon--size-default"
-           aria-hidden="true"></i>
-      </span>
+      ></v-icon>
+      <!--      <span-->
+      <!--        class="highlight-item"-->
+      <!--        @click.prevent.stop="handleAction()"-->
+      <!--      >-->
+      <!--        <v-icon icon="mdi-link-variant-plus" :disabled="disabled"></v-icon>-->
+      <!--      </span>-->
     </div>
     <div @mouseup="onMouseup">
       <slot />
     </div>
   </div>
-
 </template>
 
 <style>
@@ -109,6 +119,15 @@ export default {
   border-top: 6px solid #333;
 }
 
+.pre-tools .highlight-item.disabled {
+  color: red;
+  cursor: not-allowed;
+}
+
+.pre-tools .highlight-item.disabled:hover {
+  color: red;
+}
+
 .pre-tools .highlight-item {
   color: #fff;
   cursor: pointer;
@@ -118,6 +137,4 @@ export default {
 .pre-tools .highlight-item:hover {
   color: #19f;
 }
-
-
 </style>

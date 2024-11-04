@@ -5,6 +5,7 @@ export const useLoginStore = defineStore('login', {
     token: undefined,
     username: undefined,
     is_admin: false,
+    user_id: undefined,
     project_manager: []
   }),
   actions: {
@@ -14,13 +15,15 @@ export const useLoginStore = defineStore('login', {
     removeBearer() {
       this.token = undefined
     },
-    updateUser(newUsername, is_admin, project_manager) {
+    updateUser(newUsername, newUserID, is_admin, project_manager) {
       this.username = newUsername
+      this.user_id = newUserID,
       this.is_admin = is_admin
       this.project_manager = project_manager
     },
     removeUser() {
       this.username = undefined
+      this.user_id = undefined
       this.is_admin = false
       this.project_manager = []
     },

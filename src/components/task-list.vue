@@ -3,6 +3,7 @@ import { useNewTaskStore, useLoginStore } from '@/store'
 import dataService from './dataService'
 import TaskAnnotations from '@/components/singleFileComponents/task-annotations.vue'
 import TaskDialog from './singleFileComponents/task-dialog.vue';
+import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
 
 function addChildren(obj, annotations, index) {
   if (Object.prototype.hasOwnProperty.call(annotations, index)) {
@@ -17,7 +18,8 @@ function addChildren(obj, annotations, index) {
 export default {
   components: {
     TaskAnnotations,
-    TaskDialog
+    TaskDialog,
+    DynamicButton
   },
   emits: ['openNewProject'],
   data() {
@@ -27,15 +29,16 @@ export default {
       projectName: undefined,
       tasks: undefined,
       projectID: undefined,
-      annotations: {},
       users: undefined,
       files: undefined,
-      id: undefined
+      id: undefined,
+      taskPanels: [],
+      annotations: []
     }
   },
   mounted: function () {
     this.id = this.$route.params.projectID
-    this.annotations = {}
+    this.annotations = []
     this.loadData()
     const self = this
     dataService.getProjectByID(this.id).then(function (data) {
@@ -117,6 +120,7 @@ export default {
             tmp_annotations[a.parent].push({
               id: a.id,
               title: a.user.username,
+              user_id: a.user.id,
               subtitle: a.comment,
               closed: a.closed
             })
@@ -127,6 +131,15 @@ export default {
           self.annotations[t.id] = new_task
         }
       })
+    },
+    collapseAll: function () {
+      this.taskPanels = [];
+    },
+    expandAll: function () {
+      this.collapseAll();
+      for (let task of this.tasks) {
+        this.taskPanels.push("task-" + task.id)
+      }
     }
   }
 }
@@ -146,42 +159,90 @@ export default {
         <p class="text-h2">Project "{{ projectName }}" Tasks</p>
       </v-col>
       <v-col cols="6" align="right">
+        <v-btn-group
+          variant="elevated"
+          density="comfortable"
+        >
+          <v-btn icon="mdi-expand-all" @click="expandAll"></v-btn>
+          <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
+        </v-btn-group>
+        <v-btn color="primary" variant="elevated" class="ms-3">Add Task</v-btn>
         <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)"></TaskDialog>
       </v-col>
     </v-row>
+
     <v-list lines="two">
-      <!--      <v-list-subheader inset>Folders</v-list-subheader>-->
+      <v-expansion-panels multiple v-model="taskPanels">
+        <v-expansion-panel v-for="task of tasks" :key="task.id" :value="'task-' + task.id">
+          <v-expansion-panel-title class="item-title">
+            <v-row no-gutters>
+              <v-col class="d-flex justify-start" cols="12">
+                <v-list-item :subtitle="task.id" :title="task.name" class="task-item">
+                  <template v-slot:prepend>
+                    <v-avatar :color="task.is_active ? 'green-lighten-1' : 'red-lighten-1'">
+                      <v-icon color="white">mdi-head-cog</v-icon>
+                    </v-avatar>
+                  </template>
 
-      <template v-for="task of tasks" :key="task.id">
-        <v-list-item :subtitle="task.id" :title="task.name" class="mt-3 task-item">
-          <template v-slot:prepend>
-            <v-avatar :color="task.is_active ? 'green-lighten-1' : 'red-lighten-1'">
-              <v-icon color="white">mdi-head-cog</v-icon>
-            </v-avatar>
-          </template>
+                  <template v-slot:append>
+                    <DynamicButton
+                      v-if="task.is_active"
+                      class="ms-3"
+                      text="Add annotation"
+                      color="blue-lighten-1"
+                      icon="mdi-text-box-plus"
+                      @click="addAnnotation(task.id, 0)"
+                    ></DynamicButton>
+                    <template v-if="isManager">
+                      <DynamicButton
+                        v-if="task.is_active"
+                        class="ms-3"
+                        text="Disable"
+                        color="red-lighten-1"
+                        icon="mdi-lock"
+                        @click="deactivateTask(task.id)"
+                      ></DynamicButton>
+                      <DynamicButton
+                        v-else
+                        class="ms-3"
+                        text="Enable"
+                        color="green-lighten-1"
+                        icon="mdi-lock-open-variant"
+                        @click="activateTask(task.id)"
+                      ></DynamicButton>
+                    </template>
+                  </template>
+                </v-list-item>
+              </v-col>
+            </v-row>
+          </v-expansion-panel-title>
 
-          <template v-slot:append>
-            <v-btn v-if="task.is_active" class="ms-3" color="blue-lighten-1" icon="mdi-text-box-plus"
-              @click="addAnnotation(task.id, 0)"></v-btn>
-            <v-btn v-if="task.is_active" class="ms-3" color="red-lighten-1" icon="mdi-lock"
-              @click="deactivateTask(task.id)"></v-btn>
-            <v-btn v-else class="ms-3" color="green-lighten-1" icon="mdi-lock-open-variant"
-              @click="activateTask(task.id)"></v-btn>
-          </template>
-        </v-list-item>
-
-        <TaskAnnotations v-if="annotations[task.id].children" :annotations="annotations[task.id].children"
-          :is-manager="isManager" :task="task" @close-annotation="closeAnnotation" @reopen-annotation="reopenAnnotation"
-          @add-annotation="addAnnotation" @edit-annotation="editAnnotation" :depth="50">
-        </TaskAnnotations>
-      </template>
+          <v-expansion-panel-text>
+            <TaskAnnotations
+              v-if="annotations[task.id].children"
+              :annotations="annotations[task.id].children"
+              :is-manager="isManager"
+              :task="task"
+              @close-annotation="closeAnnotation"
+              @reopen-annotation="reopenAnnotation"
+              @add-annotation="addAnnotation"
+              @edit-annotation="editAnnotation"
+              :depth="50"
+            >
+            </TaskAnnotations>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
     </v-list>
   </v-container>
 </template>
 
 <style scoped>
+.item-title {
+  padding: 0 20px 0 10px;
+}
+
 .task-item {
-  /*background-color: #d1e8ca;*/
-  border-top: 1px solid green;
+  width: 100%;
 }
 </style>

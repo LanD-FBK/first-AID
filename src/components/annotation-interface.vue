@@ -22,6 +22,7 @@ export default {
       actors: undefined,
       annotation_data: undefined,
       toBeSelected: undefined,
+      actorsWithGround: undefined,
       comment: '',
       dialog: [
         {
@@ -41,14 +42,14 @@ export default {
     vueThis.actorsLabels = {}
     vueThis.files = {}
     vueThis.actors = []
-    vueThis.annotation_data = {}
+    vueThis.annotation_data = []
+    vueThis.actorsWithGround = new Set()
 
     let promises = []
     promises.push(dataService.getTaskInfo(this.projectID, this.taskID))
     if (this.annotationID) {
       promises.push(dataService.getAnnotation(this.projectID, this.taskID, this.annotationID))
-    }
-    else if (this.annotationParent) {
+    } else if (this.annotationParent) {
       promises.push(dataService.getAnnotation(this.projectID, this.taskID, this.annotationParent))
     }
 
@@ -59,35 +60,23 @@ export default {
       } else {
         vueThis.annotation_data = result[0].data?.meta?.new_annotation_data
         if (vueThis.annotation_data === undefined || vueThis.annotation_data.length === 0) {
-          vueThis.annotation_data = {}
+          vueThis.annotation_data = []
         }
       }
-      console.log(vueThis.annotation_data)
+
       for (let a of result[0].data.actors) {
         vueThis.actorsLabels[a.label] = a.name
+        if (a.ground) {
+          vueThis.actorsWithGround.add(a.label)
+        }
       }
+
       vueThis.actors = result[0].data.actors
       for (let f of result[0].data.files) {
         vueThis.files[f.file.id] = f.file
       }
       vueThis.loadingData = false
     })
-
-    // dataService.getTaskInfo(this.projectID, this.taskID).then(function(data) {
-    //   self.annotation_data = data.data?.meta?.new_annotation_data
-    //   if (self.annotation_data === undefined || self.annotation_data.length === 0) {
-    //     self.annotation_data = {}
-    //   }
-    //   for (let a of data.data.actors) {
-    //     self.actorsLabels[a.label] = a.name
-    //   }
-    //   self.actors = data.data.actors
-    //   for (let f of data.data.files) {
-    //     self.files[f.file.id] = f.file
-    //   }
-    // }).catch().then(function() {
-    //   self.loadingData = false
-    // })
   },
   computed: {
     filesForSelect: function () {
@@ -133,10 +122,15 @@ export default {
           .catch(function (error) {
             console.log(error)
           })
-      }
-      else {
+      } else {
         dataService
-          .createAnnotation(this.projectID, this.taskID, annotation, this.comment, this.annotationParent)
+          .createAnnotation(
+            this.projectID,
+            this.taskID,
+            annotation,
+            this.comment,
+            this.annotationParent
+          )
           .then(function () {
             vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
           })
@@ -175,36 +169,30 @@ export default {
     },
     addRound: function (index) {
       let replaceIndex = index + 1
-      let s = undefined
-      let leave = false
+      let s
       if (this.annotation_data.length > replaceIndex) {
         s = this.annotation_data[replaceIndex].speaker
       } else if (this.annotation_data.length > 0) {
         s = this.annotation_data[this.annotation_data.length - 1].speaker
-        leave = true
       } else {
         // get the second one
         s = this.actors[1].label
       }
       let chosenActor = undefined
-      if (leave) {
-        chosenActor = s
-      } else {
-        let limit = 2
-        let count = 0
-        let previous = undefined
-        while (chosenActor === undefined) {
-          count++
-          if (count > limit) {
+      let limit = 2
+      let count = 0
+      let previous = undefined
+      while (chosenActor === undefined) {
+        count++
+        if (count > limit) {
+          break
+        }
+        for (let a of this.actors) {
+          if (a.label === s && previous !== undefined) {
+            chosenActor = previous
             break
           }
-          for (let a of this.actors) {
-            if (a.label === s && previous !== undefined) {
-              chosenActor = previous
-              break
-            }
-            previous = a.label
-          }
+          previous = a.label
         }
       }
 
@@ -289,7 +277,12 @@ export default {
         v-model="selectedFile"
         @update:model-value="loadFile"
       ></v-select>
-      <highlightable v-if="selectedFile && !loadingFile" @link="onLink" id="high-file-content">
+      <highlightable
+        :disabled="!actorsWithGround.has(annotation_data[selectedRound].speaker)"
+        v-if="selectedFile && !loadingFile"
+        @link="onLink"
+        id="high-file-content"
+      >
         <pre id="file-content">{{ fileContent }}</pre>
       </highlightable>
       <v-skeleton-loader id="file-loader" type="paragraph" v-if="loadingFile"></v-skeleton-loader>
@@ -304,6 +297,13 @@ export default {
           <v-divider vertical></v-divider>
           <v-col cols="5" xl="4">
             <p class="text-h4 ma-2 text-center">Ground</p>
+          </v-col>
+        </v-row>
+        <v-row v-if="Object.keys(annotation_data).length === 0">
+          <v-col class="text-center ma-3">
+            <v-btn icon="" class="ma-1" @click="addRound(-1)">
+              <v-icon icon="mdi-plus"></v-icon>
+            </v-btn>
           </v-col>
         </v-row>
         <v-row
@@ -396,18 +396,6 @@ export default {
   position: relative;
 }
 
-/*
-div.selected-row-label {
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  font-weight: bold;
-  background-color: brown;
-  color: white;
-  padding: 2px 5px;
-}
-*/
-
 .ground-list .v-list-item-title {
   font-size: 0.8em;
 }
@@ -415,10 +403,6 @@ div.selected-row-label {
 #file-content {
   white-space: pre-wrap; /* Since CSS 2.1 */
   word-wrap: break-word; /* Internet Explorer 5.5+ */
-
-  /*  overflow-y: auto;
-    height: 100%;
-    flex-grow: 1;*/
 }
 
 .file-pane {
@@ -445,10 +429,4 @@ div.selected-row-label {
   height: 100%;
   padding: 0;
 }
-
-/*#pre-col {
-  display: flex;
-  flex-direction: column;
-
-}*/
 </style>
