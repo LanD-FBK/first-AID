@@ -2,6 +2,7 @@
 import { useNewTaskStore, useLoginStore } from '@/store'
 import dataService from './dataService'
 import TaskAnnotations from '@/components/singleFileComponents/task-annotations.vue'
+import TaskDialog from './singleFileComponents/task-dialog.vue';
 
 function addChildren(obj, annotations, index) {
   if (Object.prototype.hasOwnProperty.call(annotations, index)) {
@@ -15,7 +16,8 @@ function addChildren(obj, annotations, index) {
 
 export default {
   components: {
-    TaskAnnotations
+    TaskAnnotations,
+    TaskDialog
   },
   emits: ['openNewProject'],
   data() {
@@ -25,12 +27,25 @@ export default {
       projectName: undefined,
       tasks: undefined,
       projectID: undefined,
-      annotations: {}
+      annotations: {},
+      users: undefined,
+      files: undefined,
+      id: undefined
     }
   },
   mounted: function () {
+    this.id = this.$route.params.projectID
     this.annotations = {}
     this.loadData()
+    const self = this
+    dataService.getProjectByID(this.id).then(function (data) {
+      console.log(data.data)
+      self.projectName = data.data.name
+      self.tasks = data.data.tasks
+      self.users = data.data.users
+      self.files = data.data.files
+      console.log(self.tasks)
+    })
   },
   computed: {
     isManager: function () {
@@ -128,13 +143,12 @@ export default {
   <v-container fluid v-else>
     <v-row justify="center">
       <v-col cols="6">
-        <p class="text-h2">{{ projectName }} Tasks</p>
+        <p class="text-h2">Project "{{ projectName }}" Tasks</p>
       </v-col>
       <v-col cols="6" align="right">
-        <v-btn color="primary" variant="elevated">Add Task</v-btn>
+        <TaskDialog :users="this.users" :files="this.files" :projectID="this.id"></TaskDialog>
       </v-col>
     </v-row>
-
     <v-list lines="two">
       <!--      <v-list-subheader inset>Folders</v-list-subheader>-->
 
@@ -147,41 +161,18 @@ export default {
           </template>
 
           <template v-slot:append>
-            <v-btn
-              v-if="task.is_active"
-              class="ms-3"
-              color="blue-lighten-1"
-              icon="mdi-text-box-plus"
-              @click="addAnnotation(task.id, 0)"
-            ></v-btn>
-            <v-btn
-              v-if="task.is_active"
-              class="ms-3"
-              color="red-lighten-1"
-              icon="mdi-lock"
-              @click="deactivateTask(task.id)"
-            ></v-btn>
-            <v-btn
-              v-else
-              class="ms-3"
-              color="green-lighten-1"
-              icon="mdi-lock-open-variant"
-              @click="activateTask(task.id)"
-            ></v-btn>
+            <v-btn v-if="task.is_active" class="ms-3" color="blue-lighten-1" icon="mdi-text-box-plus"
+              @click="addAnnotation(task.id, 0)"></v-btn>
+            <v-btn v-if="task.is_active" class="ms-3" color="red-lighten-1" icon="mdi-lock"
+              @click="deactivateTask(task.id)"></v-btn>
+            <v-btn v-else class="ms-3" color="green-lighten-1" icon="mdi-lock-open-variant"
+              @click="activateTask(task.id)"></v-btn>
           </template>
         </v-list-item>
 
-        <TaskAnnotations
-          v-if="annotations[task.id].children"
-          :annotations="annotations[task.id].children"
-          :is-manager="isManager"
-          :task="task"
-          @close-annotation="closeAnnotation"
-          @reopen-annotation="reopenAnnotation"
-          @add-annotation="addAnnotation"
-          @edit-annotation="editAnnotation"
-          :depth="50"
-        >
+        <TaskAnnotations v-if="annotations[task.id].children" :annotations="annotations[task.id].children"
+          :is-manager="isManager" :task="task" @close-annotation="closeAnnotation" @reopen-annotation="reopenAnnotation"
+          @add-annotation="addAnnotation" @edit-annotation="editAnnotation" :depth="50">
         </TaskAnnotations>
       </template>
     </v-list>
