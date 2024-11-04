@@ -166,8 +166,7 @@ export default {
           <v-btn icon="mdi-expand-all" @click="expandAll"></v-btn>
           <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
         </v-btn-group>
-        <v-btn color="primary" variant="elevated" class="ms-3">Add Task</v-btn>
-        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)"></TaskDialog>
+        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>
       </v-col>
     </v-row>
 
