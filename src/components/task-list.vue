@@ -146,7 +146,7 @@ export default {
         <p class="text-h2">Project "{{ projectName }}" Tasks</p>
       </v-col>
       <v-col cols="6" align="right">
-        <TaskDialog :users="this.users" :files="this.files" :projectID="this.id"></TaskDialog>
+        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)"></TaskDialog>
       </v-col>
     </v-row>
     <v-list lines="two">
