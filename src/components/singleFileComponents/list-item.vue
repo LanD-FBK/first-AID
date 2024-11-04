@@ -9,7 +9,6 @@ export default {
     DynamicButton,
     TaskDialog
   },
-  inject: ['newTaskStatus'],
   data() {
     return {
       variablesStore: useVariablesStore(),
@@ -17,66 +16,9 @@ export default {
       dialogDocs: false,
       dialogUsers: false,
       loadingEditUsers: false,
-      dialogNewTask: this.newTaskStatus.isDialogActive,
 
       //Manage Tasks vars
       dialogTasks: false,
-      loadingSubmitNewTask: false,
-      //TODO: add watcher to empty all fields on dialog closure
-      snackbarNewTaskSuccess: false,
-      dialogNewTaskError: false,
-      dialogNewTaskErrorMessage: '',
-      validNewTaskData: false,
-      rulesNewTask: [
-        function (value) {
-          if (value) return true
-          return 'Please provide a task name'
-        }
-      ],
-      taskName: '',
-      isNewTaskActive: false,
-      selectedTaskLanguage: undefined,
-      initialDataTaskSelection: undefined,
-      newTurnTaskSelection: undefined,
-      newTaskUsers: [],
-      newTaskFiles: [],
-
-      //Initial data vars
-      //No further Axios configuration necessary.
-      //baseURL does not apply if a full URL is supplied
-      initialDataEndpoint: '',
-      initialDataMethods: [],
-      initialDataRoles: [],
-      initialDataButtonLoading: false,
-      initialDataError: false,
-      initialDataErrorStatus: '',
-      selectedInitialDataGenerationMethod: undefined,
-
-      //New turn vars
-      newTurnEndpoint: '',
-      newTurnError: false,
-      newTurnErrorMessage: '',
-      newTurnButtonLoading: false,
-      selectedNewTurnGenerationMethod: undefined,
-      newTurnMethods: [],
-      newTurnRoles: [],
-
-      dialogDifferentMethodsError: false,
-      //Roles vars
-      newTaskRoles: [
-        {
-          name: '',
-          id: '',
-          ground: false,
-          number: 0
-        },
-        {
-          name: '',
-          id: '',
-          ground: true,
-          number: 1
-        }
-      ],
 
       files: undefined,
       uploadedFiles: undefined,
@@ -137,7 +79,6 @@ export default {
     },
 
     //Document handling
-    //Not working
     addDocuments: function () {
       //TODO: Add loading
       const self = this
@@ -173,167 +114,11 @@ export default {
       this.newTaskStatus.files = this.files
     },
 
-    //Consider merge in one function
-    //Initial Data retrieval and handling
-    getInitialData: function () {
-      this.initialDataButtonLoading = true
-      const self = this
-      dataService
-        .getTaskData(this.initialDataEndpoint)
-        .then(function (data) {
-          //May need to be changed if APIs change
-          for (let item of data.data) {
-            self.initialDataRoles.push({
-              generationMethod: item.generation_method,
-              roles: item.roles
-            })
-            console.log(self.initialDataRoles)
-            self.initialDataMethods.push({
-              title: item.generation_method,
-              props: {
-                disabled: false
-              }
-            })
-          }
-          self.initialDataButtonLoading = false
-        })
-        .catch(function (error) {
-          console.log(error)
-          self.initialDataButtonLoading = false
-          self.initialDataError = true
-          self.initialDataErrorStatus = String(error.message + ": " + error.response.statusText)
-        })
-    },
-    //New turn Data retrieval and handling
-    getNewTurn: function () {
-      this.newTurnButtonLoading = true
-      const self = this
-      dataService
-        .getTaskData(this.newTurnEndpoint)
-        .then(function (data) {
-          console.log(data.data)
-          for (let item of data.data) {
-            self.newTurnRoles.push({
-              generationMethod: item.generation_method,
-              roles: item.roles
-            })
-            self.newTurnMethods.push({
-              title: item.generation_method,
-              props: {
-                disabled: false
-              }
-            })
-          }
-          console.log(self.newTurnMethods)
-          self.newTurnButtonLoading = false
-        })
-        .catch(function (error) {
-          console.log(error)
-          self.newTurnButtonLoading = false
-          self.newTurnError = true
-          self.newTurnErrorMessage = String(error.message + ": " + error.response.statusText)
-        })
-    },
-
-    //Send new task to API
-    submitNewTask: function () {
-      if (this.validNewTaskData) {
-        this.loadingSubmitNewTask = true
-        const self = this
-        let meta = {}
-        let sendNewTaskRoles = []
-        for (let role of this.newTaskRoles) {
-          sendNewTaskRoles.push({
-            label: role.id,
-            name: role.name,
-            ground: role.ground
-          })
-        }
-        if (this.selectedInitialDataGenerationMethod != undefined) {
-          if (this.selectedNewTurnGenerationMethod != undefined) {
-            //Both 'Initial Data' and 'New Turn' call APIs
-            meta = {
-              start_type_url: this.initialDataEndpoint,
-              start_type_method: this.selectedInitialDataGenerationMethod,
-              inside_type_endpoint: this.newTurnEndpoint,
-              inside_type_api: this.selectedNewTurnGenerationMethod
-            }
-          } else {
-            //Only 'Initial Data' calls APIs
-            meta = {
-              start_type_url: this.initialDataEndpoint,
-              start_type_method: this.selectedInitialDataGenerationMethod
-            }
-          }
-        } else if (this.selectedNewTurnGenerationMethod != undefined) {
-          //Only 'New Turn' calls APIs
-          meta = {
-            inside_type_endpoint: this.newTurnEndpoint,
-            inside_type_api: this.selectedNewTurnGenerationMethod
-          }
-        }
-        dataService
-          .addTaskToProject(
-            this.id,
-            this.taskName,
-            this.initialDataTaskSelection,
-            this.newTurnTaskSelection,
-            this.selectedTaskLanguage,
-            this.isNewTaskActive,
-            meta,
-            sendNewTaskRoles,
-            this.newTaskUsers,
-            this.newTaskFiles
-          )
-          .then(function (data) {
-            console.log(data)
-            self.dialogNewTask = false
-            self.snackbarNewTaskSuccess = true
-            self.loadingSubmitNewTask = false
-          })
-          .catch(function (error) {
-            console.log(error)
-            self.dialogNewTaskError = true
-            self.dialogNewTaskErrorMessage = String(error.message + ": " + error.response.statusText)
-            self.loadingSubmitNewTask = false
-          })
-      }
-    },
-
-    //Add new role to new task
-    addNewRole: function () {
-      this.newTaskRoles.push({
-        name: '',
-        id: '',
-        number: this.newTaskRoles[this.newTaskRoles.length - 1].number + 1
-      })
-      console.log(this.newTaskRoles)
-    },
-
-    //Removes role from new task
-    deleteRole: function (deleteIndex) {
-      this.newTaskRoles.splice(deleteIndex, 1)
-      console.log(this.newTaskRoles)
-    },
-
     editProjectDialogAdminDisplay: function (userID) {
       if (this.editProjectAdminList.includes(userID)) return 'Admin User'
       return 'Normal User'
     },
-    //Check logic
-    isNewTurnMethodsListItemDisabled: function (generationMethod) {
-      console.log(this.selectedInitialDataGenerationMethod)
-      console.log(generationMethod)
-      if (this.selectedInitialDataGenerationMethod == '') return false
-      else if (this.selectedInitialDataGenerationMethod == generationMethod) return false
-      return true
-    },
-    //Check logic
-    isInitialDataMethodsListItemDisabled: function (generationMethod) {
-      if (this.selectedNewTurnGenerationMethod == '') return false
-      else if (this.selectedNewTurnGenerationMethod != generationMethod) return false
-      return true
-    }
+
   },
   computed: {
     displaySize() {
@@ -346,42 +131,6 @@ export default {
     isDeleteButtonEditProjectDialog() {
       return this.editProjectUserSelect.length === 0 ? true : false
     },
-    isInitialDataFormDisabled() {
-      console.log(this.initialDataTaskSelection)
-      return this.initialDataTaskSelection === 'pre_compiled' ? false : true
-    },
-    isNewTurnFormDisabled() {
-      return this.newTurnTaskSelection === 'choice' ? false : true
-    },
-    isInitialDataSelectionDisabled() {
-      if (this.initialDataMethods.length == 0 || this.isInitialDataFormDisabled) return true
-      return false
-    },
-    isNewTurnSelectionDisabled() {
-      if (this.newTurnMethods.length == 0 || this.isNewTurnFormDisabled) return true
-      return false
-    },
-
-    //Check logic
-    isNewTaskRolesDisabled() {
-      if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
-        return true
-      else if (!this.isInitialDataFormDisabled || !this.isNewTurnFormDisabled) return true
-      return false
-      /* if (this.initialDataTaskSelection == undefined || this.newTurnTaskSelection == undefined)
-        return true
-      else if (
-        (!this.isInitialDataFormDisabled &&
-          this.selectedInitialDataGenerationMethod == undefined) ||
-        (!this.isNewTurnFormDisabled && this.selectedNewTurnGenerationMethod == undefined)
-      )
-        return true
-      return false */
-    },
-    isNewTaskRolesDeleteDisabled() {
-      if (this.newTaskRoles.length <= 2) return true
-      return false
-    }
   },
   watch: {
     editProjectAdminList(newValue, oldValue) {
@@ -390,89 +139,6 @@ export default {
     dialogUsers(newValue, oldValue) {
       this.editProjectAdminList = []
       this.editProjectUserSelect = []
-    },
-    selectedInitialDataGenerationMethod(newValue, oldValue) {
-      if (newValue != undefined) {
-        if (
-          this.selectedNewTurnGenerationMethod == undefined ||
-          newValue == this.selectedNewTurnGenerationMethod
-        ) {
-          for (let item of this.initialDataRoles) {
-            if (item.generationMethod == newValue) {
-              //"Deletes" the 'newTaskRoles' array
-              this.newTaskRoles.splice(0, this.newTaskRoles.length)
-              for (let role of item.roles) {
-                let i = 0
-                this.newTaskRoles.push({
-                  name: role.name,
-                  id: role.label,
-                  ground: role.ground,
-                  number: i
-                })
-                i++
-              }
-            }
-          }
-        } else {
-          this.dialogDifferentMethodsError = true
-        }
-      }
-    },
-    initialDataTaskSelection(newValue, oldValue) {
-      if (newValue == 'empty' && oldValue !== undefined) {
-        console.log('watcher empty')
-        for (let role of this.newTaskRoles) {
-          role.id = ''
-          role.name = ''
-        }
-        this.initialDataEndpoint = ''
-      }
-    },
-    selectedNewTurnGenerationMethod(newValue, oldValue) {
-      if (newValue != undefined) {
-        if (
-          this.selectedInitialDataGenerationMethod == undefined ||
-          this.selectedInitialDataGenerationMethod == newValue
-        ) {
-          for (let item of this.newTurnRoles) {
-            if (item.generationMethod == newValue) {
-              this.newTaskRoles.splice(0, this.newTaskRoles.length)
-              for (let role of item.roles) {
-                let i = 0
-                this.newTaskRoles.push({
-                  name: role.name,
-                  id: role.label,
-                  ground: role.ground,
-                  number: i
-                })
-                i++
-              }
-            }
-          }
-        } else {
-          this.dialogDifferentMethodsError = true
-        }
-      }
-    },
-    dialogDifferentMethodsError(newValue, oldValue) {
-      if (newValue == true) {
-        this.selectedInitialDataGenerationMethod = undefined
-        this.selectedNewTurnGenerationMethod = undefined
-        this.newTaskRoles = [
-          {
-            name: '',
-            id: '',
-            ground: false,
-            number: 0
-          },
-          {
-            name: '',
-            id: '',
-            ground: true,
-            number: 1
-          }
-        ]
-      }
     }
   }
 }
