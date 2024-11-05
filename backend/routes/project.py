@@ -56,7 +56,7 @@ def check_manage_project(db: Session, project_id: int, user: User, return_bool=F
     if return_bool:
         return (db_obj, ret.is_project_admin)
     else:
-        if not ret:
+        if not ret.is_project_admin:
             raise HTTPException(status_code=400, detail=f"User {user.username} cannot manage project {project_id}")
 
         return db_obj
