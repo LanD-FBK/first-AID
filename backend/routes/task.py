@@ -109,10 +109,10 @@ async def call_create_task(
             new_item['ground'] = []
             for g in t['ground']:
                 new_ground = {}
-                new_ground['text'] = g['turn_ground']
-                new_ground['file_id'] = file_ids[g['turn_ground_doc']]
-                new_ground['offset_start'] = g['ground_offset_start']
-                new_ground['offset_end'] = g['ground_offset_end']
+                new_ground['text'] = g['text']
+                new_ground['file_id'] = file_ids[g['file_index']]
+                new_ground['offset_start'] = g['offset_start']
+                new_ground['offset_end'] = g['offset_end']
                 new_item['ground'].append(new_ground)
             new_annotation_data.append(new_item)
 
