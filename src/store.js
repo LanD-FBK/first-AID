@@ -44,7 +44,14 @@ export const useVariablesStore = defineStore('variables', {
     //Max width used by all "primary" dialogs
     dialogMaxWidth: '700px',
     //Max width used by all warning and error dialogs
-    errorMaxWidth: '350px'
+    errorMaxWidth: '350px',
+    rulesCreateUser: [
+      function (value) {
+        if (value) return true
+        return 'This field cannot be empty'
+      }
+    ],
+
   })
 })
 

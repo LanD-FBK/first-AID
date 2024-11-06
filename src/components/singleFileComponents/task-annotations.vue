@@ -41,66 +41,68 @@ export default {
 </script>
 
 <template>
-  <template v-for="annotation in annotations" :key="annotation.id">
-    <v-list-item
-      :style="{ 'margin-left': depth + 'px' }"
-      :title="annotation.title"
-      :subtitle="annotation.id + ' - ' + annotation.subtitle"
-    >
-      <template v-slot:prepend>
-        <v-avatar :color="annotation.closed ? 'grey-lighten-1' : 'yellow-lighten-1'">
-          <v-icon>mdi-text-box</v-icon>
-        </v-avatar>
-      </template>
-      <template v-slot:append v-if="task.is_active">
-        <DynamicButton
-          class="ms-3"
-          v-if="annotation.closed"
-          text="Add annotation"
-          color="blue-lighten-1"
-          icon="mdi-text-box-plus"
-          @click="addAnnotation(task.id, annotation.id)"
-        ></DynamicButton>
-        <template v-if="annotation.user_id === loginStore.user_id && !annotation.closed">
+  <div>
+    <template v-for="annotation in annotations" :key="annotation.id">
+      <v-list-item
+        :style="{ 'margin-left': depth + 'px' }"
+        :title="annotation.title"
+        :subtitle="annotation.id + ' - ' + annotation.subtitle"
+      >
+        <template v-slot:prepend>
+          <v-avatar :color="annotation.closed ? 'grey-lighten-1' : 'yellow-lighten-1'">
+            <v-icon>mdi-text-box</v-icon>
+          </v-avatar>
+        </template>
+        <template v-slot:append v-if="task.is_active">
           <DynamicButton
             class="ms-3"
-            color="yellow-lighten-1"
-            text="Edit annotation"
-            icon="mdi-pencil"
-            @click="editAnnotation(task.id, annotation.id)"
+            v-if="annotation.closed"
+            text="Add annotation"
+            color="blue-lighten-1"
+            icon="mdi-text-box-plus"
+            @click="addAnnotation(task.id, annotation.id)"
           ></DynamicButton>
+          <template v-if="annotation.user_id === loginStore.user_id && !annotation.closed">
+            <DynamicButton
+              class="ms-3"
+              color="yellow-lighten-1"
+              text="Edit annotation"
+              icon="mdi-pencil"
+              @click="editAnnotation(task.id, annotation.id)"
+            ></DynamicButton>
+            <DynamicButton
+              class="ms-3"
+              color="yellow-lighten-1"
+              text="Confirm annotation"
+              icon="mdi-text-box-check"
+              @click="closeAnnotation(task.id, annotation.id)"
+            ></DynamicButton>
+          </template>
           <DynamicButton
             class="ms-3"
+            v-if="isManager && annotation.closed"
             color="yellow-lighten-1"
-            text="Confirm annotation"
-            icon="mdi-text-box-check"
-            @click="closeAnnotation(task.id, annotation.id)"
+            text="Reopen annotation"
+            icon="mdi-text-box-edit"
+            @click="reopenAnnotation(task.id, annotation.id)"
           ></DynamicButton>
         </template>
-        <DynamicButton
-          class="ms-3"
-          v-if="isManager && annotation.closed"
-          color="yellow-lighten-1"
-          text="Reopen annotation"
-          icon="mdi-text-box-edit"
-          @click="reopenAnnotation(task.id, annotation.id)"
-        ></DynamicButton>
-      </template>
-    </v-list-item>
+      </v-list-item>
 
-    <TaskAnnotations
-      :is-manager="isManager"
-      :task="task"
-      @close-annotation="closeAnnotation"
-      @reopen-annotation="reopenAnnotation"
-      @add-annotation="addAnnotation"
-      @edit-annotation="editAnnotation"
-      v-if="annotation.children"
-      :annotations="annotation.children"
-      :depth="step + depth"
-    >
-    </TaskAnnotations>
-  </template>
+      <TaskAnnotations
+        :is-manager="isManager"
+        :task="task"
+        @close-annotation="closeAnnotation"
+        @reopen-annotation="reopenAnnotation"
+        @add-annotation="addAnnotation"
+        @edit-annotation="editAnnotation"
+        v-if="annotation.children"
+        :annotations="annotation.children"
+        :depth="step + depth"
+      >
+      </TaskAnnotations>
+    </template>
+  </div>
 </template>
 
 <style scoped></style>

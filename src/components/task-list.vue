@@ -40,15 +40,13 @@ export default {
     this.id = this.$route.params.projectID
     this.annotations = []
     this.loadData()
-    const self = this
-    dataService.getProjectByID(this.id).then(function (data) {
-      console.log(data.data)
-      self.projectName = data.data.name
-      self.tasks = data.data.tasks
-      self.users = data.data.users
-      self.files = data.data.files
-      console.log(self.tasks)
-    })
+    // const self = this
+    // dataService.getProjectByID(this.id).then(function (data) {
+    //   self.projectName = data.data.name
+    //   self.tasks = data.data.tasks
+    //   self.users = data.data.users
+    //   self.files = data.data.files
+    // })
   },
   computed: {
     isManager: function () {
@@ -105,6 +103,8 @@ export default {
         self.projectID = self.$route.params.projectID
         self.projectName = data.data.name
         self.tasks = data.data.tasks
+        self.users = data.data.users
+        self.files = data.data.files
 
         for (let t of data.data.tasks) {
           let new_task = {}
@@ -166,7 +166,8 @@ export default {
           <v-btn icon="mdi-expand-all" @click="expandAll"></v-btn>
           <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
         </v-btn-group>
-        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>
+        <v-btn color="primary" variant="elevated" class="ms-3">Add New</v-btn>
+<!--        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>-->
       </v-col>
     </v-row>
 
@@ -190,7 +191,7 @@ export default {
                       text="Add annotation"
                       color="blue-lighten-1"
                       icon="mdi-text-box-plus"
-                      @click="addAnnotation(task.id, 0)"
+                      @click.stop="addAnnotation(task.id, 0)"
                     ></DynamicButton>
                     <template v-if="isManager">
                       <DynamicButton
@@ -199,7 +200,7 @@ export default {
                         text="Disable"
                         color="red-lighten-1"
                         icon="mdi-lock"
-                        @click="deactivateTask(task.id)"
+                        @click.stop="deactivateTask(task.id)"
                       ></DynamicButton>
                       <DynamicButton
                         v-else
@@ -207,7 +208,7 @@ export default {
                         text="Enable"
                         color="green-lighten-1"
                         icon="mdi-lock-open-variant"
-                        @click="activateTask(task.id)"
+                        @click.stop="activateTask(task.id)"
                       ></DynamicButton>
                     </template>
                   </template>

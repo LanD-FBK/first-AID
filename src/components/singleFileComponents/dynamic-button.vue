@@ -10,7 +10,7 @@ export default {
   },
   computed: {
     isIcon() {
-      return this.$vuetify.display.mdAndDown ? true : false
+      return !!this.$vuetify.display.mdAndDown
     },
   }
 }

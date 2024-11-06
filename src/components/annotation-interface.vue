@@ -278,7 +278,7 @@ export default {
         @update:model-value="loadFile"
       ></v-select>
       <highlightable
-        :disabled="!actorsWithGround.has(annotation_data[selectedRound].speaker)"
+        :disabled="!actorsWithGround.has(annotation_data[selectedRound]?.speaker)"
         v-if="selectedFile && !loadingFile"
         @link="onLink"
         id="high-file-content"
@@ -333,7 +333,7 @@ export default {
                     />
                   </template>
                 </v-select>
-                <v-textarea v-model="round['text']" @focus="selectedRound = index"></v-textarea>
+                <v-textarea rows="1" v-model="round['text']" @focus="selectedRound = index" auto-grow></v-textarea>
               </v-col>
             </v-row>
           </v-col>

@@ -193,11 +193,11 @@ export default {
   },
 
   activateTask: function (projectID, taskID) {
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/activate/')
+    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/activate')
   },
 
   deactivateTask: function (projectID, taskID) {
-    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/deactivate/')
+    return axios.patch('/projects/' + projectID + '/tasks/' + taskID + '/deactivate')
   },
 
   //This call only works when there is no ending "slash" symbol
