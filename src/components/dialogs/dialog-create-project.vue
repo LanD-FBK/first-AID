@@ -45,13 +45,7 @@ export default {
             submitAdminList
           )
           .then(function () {
-            self.showMe = false
             self.$emit('refresh')
-            //Can't be seen as router immediately changes page
-            // self.successNewProjectSnackbar = true
-            // self.$router.go(0)
-            //Maybe create a prop to force a component update instead of a page update?
-            //This way the snackbar can be seen
           })
           .catch(function (error) {
             self.errorDialog = true

@@ -2,8 +2,8 @@
 import { useNewTaskStore, useLoginStore } from '@/store'
 import dataService from './dataService'
 import TaskAnnotations from '@/components/singleFileComponents/task-annotations.vue'
-import TaskDialog from './singleFileComponents/task-dialog.vue';
 import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
+import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
 
 function addChildren(obj, annotations, index) {
   if (Object.prototype.hasOwnProperty.call(annotations, index)) {
@@ -17,8 +17,8 @@ function addChildren(obj, annotations, index) {
 
 export default {
   components: {
+    DialogGeneric,
     TaskAnnotations,
-    TaskDialog,
     DynamicButton
   },
   emits: ['openNewProject'],
@@ -31,14 +31,12 @@ export default {
       projectID: undefined,
       users: undefined,
       files: undefined,
-      id: undefined,
       taskPanels: [],
-      annotations: []
+      annotations: [],
+      dialogNewTask: false
     }
   },
   mounted: function () {
-    this.id = this.$route.params.projectID
-    this.annotations = []
     this.loadData()
     // const self = this
     // dataService.getProjectByID(this.id).then(function (data) {
@@ -133,12 +131,12 @@ export default {
       })
     },
     collapseAll: function () {
-      this.taskPanels = [];
+      this.taskPanels = []
     },
     expandAll: function () {
-      this.collapseAll();
+      this.collapseAll()
       for (let task of this.tasks) {
-        this.taskPanels.push("task-" + task.id)
+        this.taskPanels.push('task-' + task.id)
       }
     }
   }
@@ -148,26 +146,30 @@ export default {
 <template>
   <v-container fluid v-if="tasks === undefined">
     <v-row>
-      <v-col cols="12" align="center">
+      <v-col cols="12">
         <v-progress-circular indeterminate class="mx-auto" :size="128"></v-progress-circular>
       </v-col>
     </v-row>
   </v-container>
   <v-container fluid v-else>
+    <DialogGeneric
+      v-model="dialogNewTask"
+      component-file="./dialog-task.vue"
+      :data="{ users: users, files: files, projectID: Number(projectID) }"
+    ></DialogGeneric>
     <v-row justify="center">
       <v-col cols="6">
         <p class="text-h2">Project "{{ projectName }}" Tasks</p>
       </v-col>
-      <v-col cols="6" align="right">
-        <v-btn-group
-          variant="elevated"
-          density="comfortable"
-        >
+      <v-col cols="6">
+        <v-btn-group variant="elevated" density="comfortable">
           <v-btn icon="mdi-expand-all" @click="expandAll"></v-btn>
           <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
         </v-btn-group>
-        <v-btn color="primary" variant="elevated" class="ms-3">Add New</v-btn>
-<!--        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>-->
+        <v-btn color="primary" variant="elevated" class="ms-3" @click.stop="dialogNewTask = true"
+          >Add New</v-btn
+        >
+        <!--        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>-->
       </v-col>
     </v-row>
 

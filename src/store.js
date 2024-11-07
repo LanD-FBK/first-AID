@@ -17,7 +17,7 @@ export const useLoginStore = defineStore('login', {
     },
     updateUser(newUsername, newUserID, is_admin, project_manager) {
       this.username = newUsername
-      this.user_id = newUserID,
+      this.user_id = newUserID
       this.is_admin = is_admin
       this.project_manager = project_manager
     },
@@ -32,8 +32,7 @@ export const useLoginStore = defineStore('login', {
       this.removeUser()
     },
     isToken() {
-      if (this.token) return true
-      return false
+      return !!this.token;
     }
   },
   persist: true
@@ -42,7 +41,7 @@ export const useLoginStore = defineStore('login', {
 export const useVariablesStore = defineStore('variables', {
   state: () => ({
     //Max width used by all "primary" dialogs
-    dialogMaxWidth: '700px',
+    dialogMaxWidth: '80%',
     //Max width used by all warning and error dialogs
     errorMaxWidth: '350px',
     rulesCreateUser: [
@@ -68,6 +67,20 @@ export const useNewTaskStore = defineStore('newTask', {
     language: [
       { complete: 'Italiano', apiFormat: 'it' },
       { complete: 'English', apiFormat: 'en' }
+    ],
+    initialTaskRoles: [
+      {
+        name: '',
+        id: '',
+        ground: false,
+        number: 0
+      },
+      {
+        name: '',
+        id: '',
+        ground: true,
+        number: 1
+      }
     ],
     //Minimum number of roles for a new task
     minimumRoles: 2,
