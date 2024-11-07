@@ -3,9 +3,11 @@ import dataService from './dataService'
 import highlightable from '@/components/highlight-table.vue'
 import { nextTick } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
+import ConfirmDialog from '@/components/dialogs/dialog-confirm.vue'
+import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
 
 export default {
-  components: { highlightable, Splitpanes, Pane },
+  components: { DynamicButton, ConfirmDialog, highlightable, Splitpanes, Pane },
   data() {
     return {
       annotationID: undefined,
@@ -23,7 +25,10 @@ export default {
       annotation_data: undefined,
       toBeSelected: undefined,
       actorsWithGround: undefined,
+      time: 0,
       comment: '',
+      commentVisible: false,
+      removing: [],
       dialog: [
         {
           name: 'Actor',
@@ -42,6 +47,7 @@ export default {
     vueThis.actorsLabels = {}
     vueThis.files = {}
     vueThis.actors = []
+    vueThis.time = 0
     vueThis.annotation_data = []
     vueThis.actorsWithGround = new Set()
 
@@ -54,6 +60,16 @@ export default {
     }
 
     Promise.all(promises).then(function (result) {
+      setInterval(function () {
+        vueThis.time += 1
+      }, 1000)
+      if (vueThis.annotationID) {
+        vueThis.time = result[1].data.annotations?.time
+        if (!vueThis.time) {
+          vueThis.time = 0
+        }
+      }
+
       if (vueThis.annotationID || vueThis.annotationParent) {
         vueThis.annotation_data = result[1].data.annotations.data
         vueThis.comment = result[1].data.comment
@@ -110,7 +126,7 @@ export default {
   },
   methods: {
     confirmAnnotation: function () {
-      let annotation = { data: this.annotation_data }
+      let annotation = { data: this.annotation_data, time: this.time }
       let vueThis = this
 
       if (this.annotationID) {
@@ -139,9 +155,15 @@ export default {
           })
       }
     },
-    cancel: function () {
-      // this.$router.push({ name: 'projects' })
-      this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
+    cancel: async function () {
+      if (
+        await this.$refs.confirm.open('Confirm', 'Are you sure?', {
+          okText: 'Yes',
+          cancelText: 'No'
+        })
+      ) {
+        this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
+      }
     },
     scrollToPos: function () {
       const selection = window.getSelection()
@@ -164,8 +186,19 @@ export default {
       }
       this.annotation_data[this.selectedRound].ground.push(newGround)
     },
-    deleteRound: function (index) {
-      this.annotation_data.splice(index, 1)
+    deleteRound: async function (index) {
+      if (
+        await this.$refs.confirm.open('Confirm', 'Are you sure?', {
+          okText: 'Yes',
+          cancelText: 'No'
+        })
+      ) {
+        this.removing.push(index)
+        setTimeout(() => {
+          this.annotation_data.splice(index, 1)
+          this.removing = []
+        }, 500)
+      }
     },
     addRound: function (index) {
       let replaceIndex = index + 1
@@ -214,8 +247,15 @@ export default {
         })
       }
     },
-    deleteGround: function (index, gindex) {
-      this.annotation_data[index].ground.splice(gindex, 1)
+    deleteGround: async function (index, gindex) {
+      if (
+        await this.$refs.confirm.open('Confirm', 'Are you sure?', {
+          okText: 'Yes',
+          cancelText: 'No'
+        })
+      ) {
+        this.annotation_data[index].ground.splice(gindex, 1)
+      }
     },
     selectText: function (g) {
       this.selectedFile = g.file_id
@@ -270,6 +310,7 @@ export default {
 <template>
   <splitpanes class="default-theme">
     <pane min-size="20" class="file-pane" size="35">
+      <ConfirmDialog ref="confirm"></ConfirmDialog>
       <p class="text-h4 ma-2">Files</p>
       <v-select
         :items="filesForSelect"
@@ -309,7 +350,7 @@ export default {
         <v-row
           v-for="(round, index) in annotation_data"
           :key="index"
-          :class="{ 'selected-row': selectedRound === index }"
+          :class="{ 'selected-row': selectedRound === index, removing: removing.includes(index) }"
           @click="selectedRound = index"
         >
           <v-col cols="7" xl="8">
@@ -333,7 +374,12 @@ export default {
                     />
                   </template>
                 </v-select>
-                <v-textarea rows="1" v-model="round['text']" @focus="selectedRound = index" auto-grow></v-textarea>
+                <v-textarea
+                  rows="1"
+                  v-model="round['text']"
+                  @focus="selectedRound = index"
+                  auto-grow
+                ></v-textarea>
               </v-col>
             </v-row>
           </v-col>
@@ -362,9 +408,35 @@ export default {
           </v-col>
         </v-row>
         <div class="bg-primary" id="buttons-container">
-          <v-text-field label="Comment" bg-color="white" v-model="comment"></v-text-field>
-          <v-btn prepend-icon="mdi-check" @click="confirmAnnotation">Confirm</v-btn>
-          <v-btn prepend-icon="mdi-close" class="ms-3" @click="cancel">Cancel</v-btn>
+          <v-expand-transition>
+            <v-text-field
+              v-show="commentVisible"
+              label="Comment"
+              bg-color="white"
+              v-model="comment"
+            ></v-text-field>
+          </v-expand-transition>
+          <DynamicButton
+            text="Show comment"
+            color="white"
+            icon="mdi-comment-edit"
+            @click.stop="commentVisible = !commentVisible"
+            class="ms-3"
+          ></DynamicButton>
+          <DynamicButton
+            text="Save and close"
+            color="white"
+            icon="mdi-check"
+            @click.stop="confirmAnnotation"
+            class="ms-3"
+          ></DynamicButton>
+          <DynamicButton
+            text="Discard changes"
+            color="white"
+            icon="mdi-close"
+            @click.stop="cancel"
+            class="ms-3"
+          ></DynamicButton>
         </div>
       </v-container>
     </pane>
@@ -372,15 +444,27 @@ export default {
 </template>
 
 <style>
+.removing {
+  animation-name: removing;
+  animation-duration: 500ms;
+  animation-iteration-count: 1;
+  overflow: hidden;
+}
+
+@keyframes removing {
+  from {
+    height: 180px;
+  }
+  to {
+    height: 0;
+  }
+}
+
 #buttons-container {
   position: sticky;
   bottom: 0;
   padding: 20px;
   text-align: right;
-}
-
-#buttons-container .v-btn {
-  margin-left: 20px;
 }
 
 .icon-up {
@@ -392,7 +476,7 @@ export default {
 }
 
 .selected-row {
-  background-color: #fdd;
+  background-color: #ddf;
   position: relative;
 }
 

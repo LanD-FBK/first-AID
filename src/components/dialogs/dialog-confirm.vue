@@ -12,7 +12,9 @@ export default {
         color: 'error',
         width: 400,
         zIndex: 10000,
-        noconfirm: false
+        noconfirm: false,
+        okText: 'OK',
+        cancelText: 'Cancel'
       }
     }
   },
@@ -61,10 +63,10 @@ export default {
           text
           class="body-2 font-weight-bold"
           @click="cancel"
-          >Cancel
+          >{{ options.cancelText }}
         </v-btn>
         <v-btn color="primary" class="body-2 font-weight-bold" outlined @click="agree"
-          >OK
+          >{{ options.okText }}
         </v-btn>
       </v-card-actions>
     </v-card>
