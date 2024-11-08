@@ -450,7 +450,7 @@ export default {
           <v-col cols="5" xl="4">
             <v-icon
               v-if="
-                round.ground.length == 0 && !actorsWithGround.has(annotation_data[index]?.speaker)
+                round.ground.length === 0 && !actorsWithGround.has(annotation_data[index]?.speaker)
               "
               icon="mdi-file-document-remove-outline"
               color="red"
@@ -577,6 +577,7 @@ export default {
   bottom: 0;
   padding: 20px;
   text-align: right;
+  margin-top: 20px;
 }
 
 .icon-up {
@@ -612,11 +613,13 @@ export default {
 }
 
 .dialogue-pane {
-  padding: 10px 0;
+  padding: 10px 0 0 0;
 }
 
 .empty-div {
   height: 100%;
+  flex: 1 1 auto;
+  overflow: auto;
 }
 
 #high-file-content {
@@ -633,7 +636,12 @@ export default {
 
 #dialogue-div > .v-row {
   border-bottom: 1px solid black;
-  padding: 0 10px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#dialogue-div > .v-row:nth-last-child(2) {
+  border-bottom: none;
 }
 
 #files-p {
