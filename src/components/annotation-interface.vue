@@ -335,9 +335,9 @@ export default {
       <ConfirmDialog ref="confirm"></ConfirmDialog>
       <v-row>
         <v-col>
-          <p class="ma-2" id="files-p">
-            <v-icon icon="mdi-file-document-multiple-outline me-2"></v-icon>
-            <span class="font-weight-bold">Files</span>
+          <p class="ma-2 text-center" id="files-p">
+            <v-icon icon="mdi-database-outline me-2"></v-icon>
+            <span class="font-weight-bold">Data sources</span>
           </p>
         </v-col>
       </v-row>
@@ -394,7 +394,7 @@ export default {
           <v-col cols="5" xl="4">
             <p class="ma-2 text-center">
               <v-icon icon="mdi-file-document-outline me-2"></v-icon>
-              <span class="font-weight-bold">Ground</span>
+              <span class="font-weight-bold">Ground text spans</span>
             </p>
           </v-col>
         </v-row>
