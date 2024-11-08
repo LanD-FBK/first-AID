@@ -179,7 +179,9 @@ export default {
       if (
         await this.$refs.confirm.open('Confirm', 'Are you sure?', {
           okText: 'Yes',
-          cancelText: 'No'
+          cancelText: 'No',
+          noconfirm: false,
+          color: "error"
         })
       ) {
         this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
@@ -210,7 +212,9 @@ export default {
       if (
         await this.$refs.confirm.open('Confirm', 'Are you sure?', {
           okText: 'Yes',
-          cancelText: 'No'
+          cancelText: 'No',
+          noconfirm: false,
+          color: "error"
         })
       ) {
         this.removing.push(index)
@@ -271,7 +275,9 @@ export default {
       if (
         await this.$refs.confirm.open('Confirm', 'Are you sure?', {
           okText: 'Yes',
-          cancelText: 'No'
+          cancelText: 'No',
+          noconfirm: false,
+          color: "error"
         })
       ) {
         this.annotation_data[index].ground.splice(gindex, 1)
@@ -282,6 +288,21 @@ export default {
         this.selectedFile = g.file_id
         this.toBeSelected = g
         this.loadFile()
+      }
+      if (g.file_id < 0) {
+        let a = document.createElement('a')
+        a.href = g.link
+        a.textContent = g.link
+        let message = g.name
+        if (g?.link) {
+          message += "<br />" + a.outerHTML
+        }
+        message += "<br />" + g.text
+        this.$refs.confirm.open('Ground info', message, {
+          noconfirm: true,
+          okText: "Ok",
+          color: "primary"
+        })
       }
     },
     loadSelection: function () {
@@ -461,7 +482,6 @@ export default {
               <v-list class="ground-list">
                 <template v-for="(g, gindex) in round.ground" :key="gindex">
                   <v-list-item
-                    v-if="g.file_id > 0"
                     :title="g.file_id > 0 ? files[g.file_id].name : g.name"
                     :subtitle="g.text"
                     @click="selectText(g)"
@@ -476,35 +496,22 @@ export default {
                     </template>
                     <template v-slot:prepend>
                       <v-icon
+                        v-if="g.file_id > 0"
                         color="black"
                         icon="mdi-file-document-outline"
                         size="x-small"
                       ></v-icon>
-                    </template>
-                  </v-list-item>
-                  <v-list-item
-                    v-else
-                    :title="g.file_id > 0 ? files[g.file_id].name : g.name"
-                    :subtitle="g.text"
-                  >
-                    <template v-slot:append>
-                      <v-btn
-                        color="red"
-                        icon="mdi-trash-can-outline"
-                        variant="text"
-                        @click.stop="deleteGround(index, gindex)"
-                      ></v-btn>
-                    </template>
-                    <template v-slot:prepend>
-                      <a v-if="g?.link" :href="g.link" target="_blank">
-                        <v-icon icon="mdi-open-in-new" color="black" size="x-small"></v-icon>
-                      </a>
-                      <v-icon
-                        v-else
-                        icon="mdi-open-in-new"
-                        class="opacity-50"
-                        size="x-small"
-                      ></v-icon>
+                      <template v-if="g.file_id < 0">
+                        <a v-if="g?.link" :href="g.link" target="_blank">
+                          <v-icon icon="mdi-open-in-new" color="black" size="x-small"></v-icon>
+                        </a>
+                        <v-icon
+                          v-else
+                          icon="mdi-open-in-new"
+                          class="opacity-50"
+                          size="x-small"
+                        ></v-icon>
+                      </template>
                     </template>
                   </v-list-item>
                 </template>
