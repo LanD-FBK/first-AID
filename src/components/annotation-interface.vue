@@ -477,7 +477,11 @@ export default {
                       ></v-btn>
                     </template>
                     <template v-slot:prepend>
-                      <v-icon icon="mdi-file-document-arrow-right-outline"></v-icon>
+                      <v-icon
+                        icon="mdi-file-document-arrow-right-outline"
+                        class="opacity-50"
+                        size="x-small"
+                      ></v-icon>
                     </template>
                   </v-list-item>
                 </template>
