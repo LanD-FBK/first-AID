@@ -12,6 +12,7 @@ export default {
   components: {
     DialogConfirm
   },
+  emits: ['refresh'],
   data() {
     return {
       ds: dataService,
@@ -62,7 +63,6 @@ export default {
       this.newTaskRoles = [...this.newTaskStore.initialTaskRoles]
     },
     getData: function (type) {
-      console.log(type)
       const self = this
       let endpoint = undefined
       let toAddRoles = undefined
@@ -101,8 +101,8 @@ export default {
             })
           }
         })
-        .catch(function (error) {
-          self.$refs.confirm.open('Error', error.message + '<br />' + error.response.statusText, {
+        .catch(async function (error) {
+          await self.$refs.confirm.open('Error', error.message + '<br />' + error.response.statusText, {
             noconfirm: true
           })
         })
@@ -155,7 +155,8 @@ export default {
             this.newTaskFiles
           )
           .then(function () {
-            self.$emit('exit')
+            console.log("Internal")
+            self.$emit('refresh')
           })
           .catch(function (error) {
             let errorMsg = error.message

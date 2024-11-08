@@ -1,6 +1,6 @@
 <script>
 import { useVariablesStore } from '@/store.js'
-import { defineAsyncComponent, getCurrentInstance, markRaw } from 'vue'
+import { defineAsyncComponent, markRaw } from 'vue'
 
 export default {
   name: 'dialog-generic',
@@ -23,7 +23,7 @@ export default {
   mounted() {
     this.myComponent = markRaw(
       defineAsyncComponent(() =>
-        import(this.componentFile).then().catch(() => {
+        import(/* @vite-ignore */ this.componentFile).then().catch(() => {
           // ignored
         })
       )
@@ -32,9 +32,11 @@ export default {
   methods: {
     refresh: function () {
       this.showMe = false
-      if (getCurrentInstance()?.vnode?.props?.refresh) {
-        this.$emit('refresh')
-      }
+      this.$emit('refresh')
+      // if (getCurrentInstance()?.vnode?.props?.refresh) {
+      //   console.log("Refresh interno")
+      //   this.$emit('refresh')
+      // }
     }
   },
   data() {
