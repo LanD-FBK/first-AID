@@ -379,6 +379,7 @@ export default {
                   v-model="round['text']"
                   @focus="selectedRound = index"
                   auto-grow
+                  hide-details="auto"
                 ></v-textarea>
               </v-col>
             </v-row>
@@ -494,6 +495,11 @@ export default {
 .file-pane {
   display: flex;
   flex-direction: column;
+  padding: 10px;
+}
+
+.dialogue-pane {
+  padding: 10px 0;
 }
 
 .empty-div {
@@ -506,13 +512,14 @@ export default {
   height: 100%;
 }
 
-.splitpanes__pane {
-  padding: 10px;
-}
-
 #dialogue-div {
   overflow: auto;
   height: 100%;
   padding: 0;
+}
+
+#dialogue-div > .v-row {
+  border-bottom: 1px solid black;
+  padding: 0 10px;
 }
 </style>
