@@ -409,12 +409,14 @@ export default {
         </v-row>
         <div class="bg-primary" id="buttons-container">
           <v-expand-transition>
-            <v-text-field
+            <v-textarea
               v-show="commentVisible"
               label="Comment"
               bg-color="white"
               v-model="comment"
-            ></v-text-field>
+              auto-grow
+              rows="2"
+            ></v-textarea>
           </v-expand-transition>
           <DynamicButton
             text="Show comment"
