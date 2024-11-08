@@ -155,6 +155,7 @@ export default {
     <DialogGeneric
       v-model="dialogNewTask"
       component-file="./dialog-task.vue"
+      @refresh="loadData"
       :data="{ users: users, files: files, projectID: Number(projectID) }"
     ></DialogGeneric>
     <v-row justify="center">
