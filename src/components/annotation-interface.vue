@@ -333,7 +333,14 @@ export default {
   <splitpanes class="default-theme">
     <pane min-size="20" class="file-pane" size="35">
       <ConfirmDialog ref="confirm"></ConfirmDialog>
-      <p class="text-h4 ma-2">Files</p>
+      <v-row>
+        <v-col>
+          <p class="ma-2" id="files-p">
+            <v-icon icon="mdi-file-document-multiple-outline me-2"></v-icon>
+            <span class="font-weight-bold">Files</span>
+          </p>
+        </v-col>
+      </v-row>
       <v-select
         :items="filesForSelect"
         :item-props="true"
@@ -378,11 +385,17 @@ export default {
       <v-container fluid id="dialogue-div" v-if="!loadingData">
         <v-row>
           <v-col cols="7" xl="8">
-            <p class="text-h4 ma-2 text-center">Dialog</p>
+            <p class="ma-2 text-center">
+              <v-icon icon="mdi-forum-outline me-2"></v-icon>
+              <span class="font-weight-bold">Dialog</span>
+            </p>
           </v-col>
           <v-divider vertical></v-divider>
           <v-col cols="5" xl="4">
-            <p class="text-h4 ma-2 text-center">Ground</p>
+            <p class="ma-2 text-center">
+              <v-icon icon="mdi-file-document-outline me-2"></v-icon>
+              <span class="font-weight-bold">Ground</span>
+            </p>
           </v-col>
         </v-row>
         <v-row v-if="Object.keys(annotation_data).length === 0">
@@ -461,9 +474,15 @@ export default {
                         @click.stop="deleteGround(index, gindex)"
                       ></v-btn>
                     </template>
+                    <template v-slot:prepend>
+                      <v-icon
+                        color="black"
+                        icon="mdi-file-document-outline"
+                        size="x-small"
+                      ></v-icon>
+                    </template>
                   </v-list-item>
                   <v-list-item
-                    class="external-ground-item"
                     v-else
                     :title="g.file_id > 0 ? files[g.file_id].name : g.name"
                     :subtitle="g.text"
@@ -480,7 +499,12 @@ export default {
                       <a v-if="g?.link" :href="g.link" target="_blank">
                         <v-icon icon="mdi-open-in-new" color="black" size="x-small"></v-icon>
                       </a>
-                      <v-icon v-else icon="mdi-open-in-new" class="opacity-50" size="x-small"></v-icon>
+                      <v-icon
+                        v-else
+                        icon="mdi-open-in-new"
+                        class="opacity-50"
+                        size="x-small"
+                      ></v-icon>
                     </template>
                   </v-list-item>
                 </template>
@@ -527,8 +551,8 @@ export default {
 </template>
 
 <style>
-.external-ground-item .v-list-item__prepend > .v-icon ~ .v-list-item__spacer,
-.external-ground-item .v-list-item__prepend > a ~ .v-list-item__spacer{
+.ground-list .v-list-item__prepend > .v-icon ~ .v-list-item__spacer,
+.ground-list .v-list-item__prepend > a ~ .v-list-item__spacer {
   width: 10px;
 }
 
@@ -610,5 +634,9 @@ export default {
 #dialogue-div > .v-row {
   border-bottom: 1px solid black;
   padding: 0 10px;
+}
+
+#files-p {
+  padding-bottom: 12px;
 }
 </style>
