@@ -395,7 +395,11 @@ export default {
         <v-row
           v-for="(round, index) in annotation_data"
           :key="index"
-          :class="{ 'selected-row': selectedRound === index, removing: removing.includes(index) }"
+          :class="{
+            'selected-row': selectedRound === index,
+            removing: removing.includes(index),
+            'forbidden-ground': !actorsWithGround.has(annotation_data[index]?.speaker)
+          }"
           @click="selectedRound = index"
         >
           <v-col cols="7" xl="8">
@@ -431,6 +435,15 @@ export default {
           </v-col>
           <v-divider vertical></v-divider>
           <v-col cols="5" xl="4">
+            <v-icon
+              v-if="
+                round.ground.length == 0 && !actorsWithGround.has(annotation_data[index]?.speaker)
+              "
+              icon="mdi-file-document-remove-outline"
+              color="red"
+              class="opacity-50"
+              size="x-large"
+            ></v-icon>
             <v-card v-if="round.ground.length > 0">
               <v-list class="ground-list">
                 <template v-for="(g, gindex) in round.ground" :key="gindex">
@@ -466,7 +479,8 @@ export default {
                     <template v-slot:prepend>
                       <v-icon icon="mdi-file-document-arrow-right-outline"></v-icon>
                     </template>
-                  </v-list-item>                </template>
+                  </v-list-item>
+                </template>
               </v-list>
             </v-card>
           </v-col>
@@ -510,7 +524,6 @@ export default {
 </template>
 
 <style>
-
 .external-ground-item .v-list-item__prepend > .v-icon ~ .v-list-item__spacer {
   width: 10px;
 }
@@ -549,6 +562,10 @@ export default {
 .selected-row {
   background-color: #ddf;
   position: relative;
+}
+
+.selected-row.forbidden-ground {
+  background-color: #fdd;
 }
 
 .ground-list .v-list-item-title {
