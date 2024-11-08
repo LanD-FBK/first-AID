@@ -290,13 +290,13 @@ export default {
         this.loadFile()
       }
       if (g.file_id < 0) {
-        let a = document.createElement('a')
-        a.href = g.link
-        a.textContent = g.link
         let message = g.name
         if (g?.link) {
-          message += "<br />" + a.outerHTML
+          let a = document.createElement('a')
+          a.href = g.link
           a.target = '_blank'
+          a.textContent = g.link
+          message += "<br />" + a.outerHTML
         }
         message += "<br />" + g.text
         this.$refs.confirm.open('Ground info', message, {
