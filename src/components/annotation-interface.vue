@@ -5,11 +5,13 @@ import { nextTick } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
 import ConfirmDialog from '@/components/dialogs/dialog-confirm.vue'
 import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
+import { useNewTaskStore } from '@/store.js'
 
 export default {
   components: { DynamicButton, ConfirmDialog, highlightable, Splitpanes, Pane },
   data() {
     return {
+      newTaskStore: useNewTaskStore(),
       annotationID: undefined,
       annotationParent: 0,
       projectID: 0,
@@ -34,7 +36,9 @@ export default {
           name: 'Actor',
           dialog: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
         }
-      ]
+      ],
+
+      externalGround: {}
     }
   },
   mounted: function () {
@@ -43,6 +47,8 @@ export default {
     this.taskID = this.$route.params.taskID
     this.annotationID = this.$route.params.annotationID
     this.annotationParent = this.$route.params.annotationParent
+
+    this.externalGround = { ...this.newTaskStore.initialExternalGround }
 
     vueThis.actorsLabels = {}
     vueThis.files = {}
@@ -101,6 +107,10 @@ export default {
         title: '[Select file]',
         value: 0
       })
+      newList.push({
+        title: '[External ground]',
+        value: -1
+      })
       if (this.files) {
         for (let i in this.files) {
           newList.push({
@@ -125,6 +135,16 @@ export default {
     }
   },
   methods: {
+    addExternalGround: function () {
+      let newGround = {
+        text: this.externalGround.text,
+        name: this.externalGround.name,
+        link: this.externalGround.link,
+        file_id: -1
+      }
+      this.annotation_data[this.selectedRound].ground.push(newGround)
+      this.externalGround = { ...this.newTaskStore.initialExternalGround }
+    },
     confirmAnnotation: function () {
       let annotation = { data: this.annotation_data, time: this.time }
       let vueThis = this
@@ -258,9 +278,11 @@ export default {
       }
     },
     selectText: function (g) {
-      this.selectedFile = g.file_id
-      this.toBeSelected = g
-      this.loadFile()
+      if (g.file_id > 0) {
+        this.selectedFile = g.file_id
+        this.toBeSelected = g
+        this.loadFile()
+      }
     },
     loadSelection: function () {
       let vueThis = this
@@ -282,7 +304,7 @@ export default {
       })
     },
     loadFile: function () {
-      if (this.selectedFile) {
+      if (this.selectedFile > 0) {
         if (this.selectedFile in this.fileContentBuffer) {
           this.fileContent = this.fileContentBuffer[this.selectedFile]
           this.loadSelection()
@@ -320,14 +342,37 @@ export default {
       ></v-select>
       <highlightable
         :disabled="!actorsWithGround.has(annotation_data[selectedRound]?.speaker)"
-        v-if="selectedFile && !loadingFile"
+        v-if="selectedFile > 0 && !loadingFile"
         @link="onLink"
         id="high-file-content"
       >
         <pre id="file-content">{{ fileContent }}</pre>
       </highlightable>
       <v-skeleton-loader id="file-loader" type="paragraph" v-if="loadingFile"></v-skeleton-loader>
-      <div v-if="!selectedFile || loadingFile" class="empty-div">&nbsp;</div>
+      <div v-if="selectedFile <= 0 || loadingFile" class="empty-div">
+        <div v-if="selectedFile === -1">
+          <h3 class="mb-3">External ground</h3>
+          <v-text-field label="Document name" required v-model="externalGround.name" />
+          <v-text-field label="External link" v-model="externalGround.link" />
+          <v-textarea label="Text" rows="2" v-model="externalGround.text" auto-grow></v-textarea>
+          <div class="text-right">
+            <DynamicButton
+              text="Confirm"
+              :color="
+                actorsWithGround.has(annotation_data[selectedRound]?.speaker) ? 'white' : 'red'
+              "
+              :disabled="
+                !actorsWithGround.has(annotation_data[selectedRound]?.speaker) ||
+                !externalGround.name ||
+                !externalGround.text.trim().length
+              "
+              icon="mdi-file-document-plus-outline"
+              @click.stop="addExternalGround"
+              class="ms-3"
+            ></DynamicButton>
+          </div>
+        </div>
+      </div>
     </pane>
     <pane class="dialogue-pane">
       <v-container fluid id="dialogue-div" v-if="!loadingData">
@@ -388,22 +433,40 @@ export default {
           <v-col cols="5" xl="4">
             <v-card v-if="round.ground.length > 0">
               <v-list class="ground-list">
-                <v-list-item
-                  v-for="(g, gindex) in round.ground"
-                  :key="gindex"
-                  :title="files[g.file_id].name"
-                  :subtitle="g.text"
-                  @click="selectText(g)"
-                >
-                  <template v-slot:append>
-                    <v-btn
-                      color="red"
-                      icon="mdi-trash-can-outline"
-                      variant="text"
-                      @click.stop="deleteGround(index, gindex)"
-                    ></v-btn>
-                  </template>
-                </v-list-item>
+                <template v-for="(g, gindex) in round.ground" :key="gindex">
+                  <v-list-item
+                    v-if="g.file_id > 0"
+                    :title="g.file_id > 0 ? files[g.file_id].name : g.name"
+                    :subtitle="g.text"
+                    @click="selectText(g)"
+                  >
+                    <template v-slot:append>
+                      <v-btn
+                        color="red"
+                        icon="mdi-trash-can-outline"
+                        variant="text"
+                        @click.stop="deleteGround(index, gindex)"
+                      ></v-btn>
+                    </template>
+                  </v-list-item>
+                  <v-list-item
+                    class="external-ground-item"
+                    v-else
+                    :title="g.file_id > 0 ? files[g.file_id].name : g.name"
+                    :subtitle="g.text"
+                  >
+                    <template v-slot:append>
+                      <v-btn
+                        color="red"
+                        icon="mdi-trash-can-outline"
+                        variant="text"
+                        @click.stop="deleteGround(index, gindex)"
+                      ></v-btn>
+                    </template>
+                    <template v-slot:prepend>
+                      <v-icon icon="mdi-file-document-arrow-right-outline"></v-icon>
+                    </template>
+                  </v-list-item>                </template>
               </v-list>
             </v-card>
           </v-col>
@@ -447,6 +510,11 @@ export default {
 </template>
 
 <style>
+
+.external-ground-item .v-list-item__prepend > .v-icon ~ .v-list-item__spacer {
+  width: 10px;
+}
+
 .removing {
   animation-name: removing;
   animation-duration: 500ms;

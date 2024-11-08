@@ -68,6 +68,11 @@ export const useNewTaskStore = defineStore('newTask', {
       { complete: 'Italiano', apiFormat: 'it' },
       { complete: 'English', apiFormat: 'en' }
     ],
+    initialExternalGround: {
+      name: "",
+      link: "",
+      text: ""
+    },
     initialTaskRoles: [
       {
         name: '',
