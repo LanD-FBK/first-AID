@@ -477,11 +477,10 @@ export default {
                       ></v-btn>
                     </template>
                     <template v-slot:prepend>
-                      <v-icon
-                        icon="mdi-file-document-arrow-right-outline"
-                        class="opacity-50"
-                        size="x-small"
-                      ></v-icon>
+                      <a v-if="g?.link" :href="g.link" target="_blank">
+                        <v-icon icon="mdi-open-in-new" color="black" size="x-small"></v-icon>
+                      </a>
+                      <v-icon v-else icon="mdi-open-in-new" class="opacity-50" size="x-small"></v-icon>
                     </template>
                   </v-list-item>
                 </template>
@@ -528,7 +527,8 @@ export default {
 </template>
 
 <style>
-.external-ground-item .v-list-item__prepend > .v-icon ~ .v-list-item__spacer {
+.external-ground-item .v-list-item__prepend > .v-icon ~ .v-list-item__spacer,
+.external-ground-item .v-list-item__prepend > a ~ .v-list-item__spacer{
   width: 10px;
 }
 
