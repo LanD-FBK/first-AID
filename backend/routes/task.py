@@ -64,6 +64,9 @@ async def call_create_task(
             db_obj = TaskFileLink(task=db_task, file=db_file)
             obj_to_add.append(db_obj)
 
+    if len(file_contents) == 0:
+        raise HTTPException(status_code=400, detail=f"No files selected")
+
     new_annotation_data = []
 
     if task.start_type != "empty":
