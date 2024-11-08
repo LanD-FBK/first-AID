@@ -296,6 +296,7 @@ export default {
         let message = g.name
         if (g?.link) {
           message += "<br />" + a.outerHTML
+          a.target = '_blank'
         }
         message += "<br />" + g.text
         this.$refs.confirm.open('Ground info', message, {
