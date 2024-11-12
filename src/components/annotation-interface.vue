@@ -433,7 +433,7 @@ export default {
           :class="{
             'selected-row': selectedRound === index,
             removing: removing.includes(index),
-            'forbidden-ground': !actorsWithGround.has(annotation_data[index]?.speaker)
+            // 'forbidden-ground': !actorsWithGround.has(annotation_data[index]?.speaker)
           }"
           @click="selectedRound = index"
         >
