@@ -22,12 +22,14 @@ export default {
       deletingProjectID: -1,
       deletingProjectName: '',
       dialogProjectDeletionError: false,
-      projectDeletionErrorMessage: '',
+      projectDeletionErrorMessage: ''
     }
   },
   mounted: function () {
     this.updateProjects()
-    this.updateUsers()
+    if (this.loginStore.is_admin) {
+      this.updateUsers()
+    }
   },
   methods: {
     updateUsers: function () {
@@ -75,7 +77,7 @@ export default {
       v-model="showDialogCreateProject"
       component-file="./dialog-create-project.vue"
       @refresh="updateProjects"
-      :data="{'usersList': usersList}"
+      :data="{ usersList: usersList }"
     ></DialogGeneric>
 
     <v-container fluid v-if="projects == undefined">
