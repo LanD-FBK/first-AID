@@ -52,7 +52,7 @@ export default {
       newTurnRoles: [],
 
       dialogDifferentMethodsError: false,
-      newTaskRoles: [],
+      newTaskRoles: []
     }
   },
   mounted: function () {
@@ -102,9 +102,13 @@ export default {
           }
         })
         .catch(async function (error) {
-          await self.$refs.confirm.open('Error', error.message + '<br />' + error.response.statusText, {
-            noconfirm: true
-          })
+          await self.$refs.confirm.open(
+            'Error',
+            error.message + '<br />' + error.response.statusText,
+            {
+              noconfirm: true
+            }
+          )
         })
         .then(function () {
           if (type === 'initial') {
@@ -155,16 +159,16 @@ export default {
             this.newTaskFiles
           )
           .then(function () {
-            console.log("Internal")
+            console.log('Internal')
             self.$emit('refresh')
           })
           .catch(function (error) {
             let errorMsg = error.message
             if (error?.response?.statusText) {
-              errorMsg += "<br />" + error.response.statusText
+              errorMsg += '<br />' + error.response.statusText
             }
             if (error?.response?.data?.detail) {
-              errorMsg += "<br />" + error.response.data.detail
+              errorMsg += '<br />' + error.response.data.detail
             }
             self.$refs.confirm.open('Error', errorMsg, {
               noconfirm: true
@@ -214,8 +218,7 @@ export default {
       return false
     },
     isNewTaskRolesDeleteDisabled() {
-      return this.newTaskRoles.length <= 2;
-
+      return this.newTaskRoles.length <= 2
     }
   },
   watch: {
@@ -241,7 +244,7 @@ export default {
             }
           }
         } else {
-          self.$refs.confirm.open('Error', "Cannot select different generation methods", {
+          self.$refs.confirm.open('Error', 'Cannot select different generation methods', {
             noconfirm: true
           })
         }
@@ -289,7 +292,7 @@ export default {
             }
           }
         } else {
-          self.$refs.confirm.open('Error', "Cannot select different generation methods", {
+          self.$refs.confirm.open('Error', 'Cannot select different generation methods', {
             noconfirm: true
           })
         }
@@ -402,11 +405,7 @@ export default {
               item-title="complete"
               item-value="apiFormat"
             ></v-select>
-            <v-text-field
-              v-model="newTurnEndpoint"
-              label="URL"
-              :disabled="isNewTurnFormDisabled"
-            >
+            <v-text-field v-model="newTurnEndpoint" label="URL" :disabled="isNewTurnFormDisabled">
               <template v-slot:append>
                 <v-btn
                   text="Go"
@@ -432,7 +431,7 @@ export default {
             <!--TODO: set max height on container in order to avoid card buttons disappearing-->
             <v-container fluid max-heigth="300px">
               <v-row dense v-for="role in newTaskRoles" :key="role.number">
-                <v-col>
+                <v-col :cols="isNewTurnFormDisabled ? 6 : 5">
                   <v-text-field
                     v-model="role.id"
                     :disabled="isNewTaskRolesDisabled"
@@ -457,7 +456,18 @@ export default {
                     </template>
                   </v-text-field>
                 </v-col>
-                <v-col>
+                <v-col cols="2" v-if="!isNewTurnFormDisabled">
+                  <v-text-field
+                    v-model="role.answers"
+                    type="number"
+                    min="1"
+                    max="10"
+                    :disabled="isNewTaskRolesDisabled"
+                    label="Answers"
+                  >
+                  </v-text-field>
+                </v-col>
+                <v-col :cols="isNewTurnFormDisabled ? 6 : 5">
                   <v-text-field
                     v-model="role.name"
                     :disabled="isNewTaskRolesDisabled"

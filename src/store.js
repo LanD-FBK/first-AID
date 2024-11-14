@@ -78,13 +78,15 @@ export const useNewTaskStore = defineStore('newTask', {
         name: '',
         id: '',
         ground: false,
-        number: 0
+        number: 0,
+        answers: 1
       },
       {
         name: '',
         id: '',
         ground: true,
-        number: 1
+        number: 1,
+        answers: 1
       }
     ],
     //Minimum number of roles for a new task
