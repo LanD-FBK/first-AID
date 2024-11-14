@@ -37,11 +37,16 @@ export default {
           dialog: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
         }
       ],
-
+      unsavedChanges: false,
       externalGround: {}
     }
   },
+  unmounted: function () {
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
+  },
   mounted: function () {
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
+
     const vueThis = this
     this.projectID = this.$route.params.projectID
     this.taskID = this.$route.params.taskID
@@ -134,8 +139,29 @@ export default {
       return newList
     }
   },
+  beforeRouteLeave: async function () {
+    if (this.unsavedChanges) {
+      if (!
+        await this.$refs.confirm.open('Confirm', "If you live this page, you'll loose your job. Are you sure?", {
+          okText: 'Yes',
+          cancelText: 'No',
+          noconfirm: false,
+          color: "error"
+        })
+      ) {
+        return false
+      }
+    }
+  },
   methods: {
+    handleBeforeUnload(event) {
+      if (this.unsavedChanges) {
+        event.preventDefault();
+        event.returnValue = "Are you sure to leave site?";
+      }
+    },
     addExternalGround: function () {
+      this.unsavedChanges = true
       let newGround = {
         text: this.externalGround.text,
         name: this.externalGround.name,
@@ -153,6 +179,7 @@ export default {
         dataService
           .editAnnotation(this.projectID, this.taskID, this.annotationID, annotation, this.comment)
           .then(function () {
+            this.unsavedChanges = false
             vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
           })
           .catch(function (error) {
@@ -168,6 +195,7 @@ export default {
             this.annotationParent
           )
           .then(function () {
+            this.unsavedChanges = false
             vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
           })
           .catch(function (error) {
@@ -184,6 +212,7 @@ export default {
           color: "error"
         })
       ) {
+        this.unsavedChanges = false
         this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
       }
     },
@@ -200,6 +229,7 @@ export default {
       }
     },
     onLink: function (text, offset_start, offset_end) {
+      this.unsavedChanges = true
       let newGround = {
         text: text,
         file_id: this.selectedFile,
@@ -217,6 +247,7 @@ export default {
           color: "error"
         })
       ) {
+        this.unsavedChanges = true
         this.removing.push(index)
         setTimeout(() => {
           this.annotation_data.splice(index, 1)
@@ -225,6 +256,7 @@ export default {
       }
     },
     addRound: function (index) {
+      this.unsavedChanges = true
       let replaceIndex = index + 1
       let s
       if (this.annotation_data.length > replaceIndex) {
@@ -280,6 +312,7 @@ export default {
           color: "error"
         })
       ) {
+        this.unsavedChanges = true
         this.annotation_data[index].ground.splice(gindex, 1)
       }
     },
@@ -432,7 +465,7 @@ export default {
           :key="index"
           :class="{
             'selected-row': selectedRound === index,
-            removing: removing.includes(index),
+            removing: removing.includes(index)
             // 'forbidden-ground': !actorsWithGround.has(annotation_data[index]?.speaker)
           }"
           @click="selectedRound = index"
@@ -440,7 +473,7 @@ export default {
           <v-col cols="7" xl="8">
             <v-row>
               <v-col>
-                <v-select :items="rolesForSelect" :item-props="true" v-model="round['speaker']">
+                <v-select :items="rolesForSelect" :item-props="true" v-model="round['speaker']" @update:modelValue="unsavedChanges = true">
                   <template #prepend>
                     <v-btn icon="" class="ma-1" @click="addRound(index - 1)">
                       <v-icon class="icon-up"></v-icon>
@@ -462,6 +495,7 @@ export default {
                   rows="1"
                   v-model="round['text']"
                   @focus="selectedRound = index"
+                  @keyup="unsavedChanges = true"
                   auto-grow
                   hide-details="auto"
                 ></v-textarea>
@@ -527,6 +561,7 @@ export default {
               label="Comment"
               bg-color="white"
               v-model="comment"
+              @keyup="unsavedChanges = true"
               auto-grow
               rows="2"
             ></v-textarea>
