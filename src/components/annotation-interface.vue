@@ -140,6 +140,8 @@ export default {
     }
   },
   beforeRouteLeave: async function () {
+    // Inspired by: https://stackoverflow.com/questions/51980296/detect-back-button-in-navigation-guards-of-vue-router
+    // and: https://router.vuejs.org/guide/advanced/navigation-guards.html#In-Component-Guards
     if (this.unsavedChanges) {
       if (!
         await this.$refs.confirm.open('Confirm', "If you live this page, you'll loose your job. Are you sure?", {
@@ -155,6 +157,7 @@ export default {
   },
   methods: {
     handleBeforeUnload(event) {
+      // Inspired by: https://javokhirbekkhaydarov.medium.com/when-user-clicks-close-tab-how-to-show-confirm-modal-in-vuejs-9ef000b8cdf8
       if (this.unsavedChanges) {
         event.preventDefault();
         event.returnValue = "Are you sure to leave site?";
