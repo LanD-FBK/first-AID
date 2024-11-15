@@ -445,7 +445,7 @@ export default {
           <v-col cols="7" xl="8">
             <p class="ma-2 text-center">
               <v-icon icon="mdi-forum-outline me-2"></v-icon>
-              <span class="font-weight-bold">Dialog</span>
+              <span class="font-weight-bold">Dialogue</span>
             </p>
           </v-col>
           <v-divider vertical></v-divider>
