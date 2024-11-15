@@ -130,7 +130,8 @@ export default {
           sendNewTaskRoles.push({
             label: role.id,
             name: role.name,
-            ground: role.ground
+            ground: role.ground,
+            answers: role.answers
           })
         }
         if (this.selectedInitialDataGenerationMethod !== undefined) {
@@ -159,7 +160,6 @@ export default {
             this.newTaskFiles
           )
           .then(function () {
-            console.log('Internal')
             self.$emit('refresh')
           })
           .catch(function (error) {
@@ -237,7 +237,8 @@ export default {
                   name: role.name,
                   id: role.label,
                   ground: role.ground,
-                  number: i
+                  number: i,
+                  answers: 1
                 })
                 i++
               }
@@ -285,7 +286,8 @@ export default {
                   name: role.name,
                   id: role.label,
                   ground: role.ground,
-                  number: i
+                  number: i,
+                  answers: 1
                 })
                 i++
               }
@@ -462,7 +464,6 @@ export default {
                     type="number"
                     min="1"
                     max="10"
-                    :disabled="isNewTaskRolesDisabled"
                     label="Answers"
                   >
                   </v-text-field>
