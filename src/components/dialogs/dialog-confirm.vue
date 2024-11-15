@@ -57,16 +57,16 @@ export default {
       <v-card-text v-show="!!message" class="pa-4 black--text" v-html="message"></v-card-text>
       <v-card-actions class="pt-3">
         <v-spacer></v-spacer>
+        <v-btn color="primary" class="body-2 font-weight-bold" outlined @click="agree"
+        >{{ options.okText }}
+        </v-btn>
         <v-btn
           v-if="!options.noconfirm"
-          color="grey"
+          color="black"
           text
           class="body-2 font-weight-bold"
           @click="cancel"
           >{{ options.cancelText }}
-        </v-btn>
-        <v-btn color="primary" class="body-2 font-weight-bold" outlined @click="agree"
-          >{{ options.okText }}
         </v-btn>
       </v-card-actions>
     </v-card>
