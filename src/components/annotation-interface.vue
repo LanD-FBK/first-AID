@@ -207,8 +207,12 @@ export default {
       }
     },
     cancel: async function () {
+      if (!this.unsavedChanges) {
+        this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
+        return
+      }
       if (
-        await this.$refs.confirm.open('Confirm', 'Are you sure?', {
+        await this.$refs.confirm.open('Confirm', 'There are unsaved changes. Are you sure you want to exit?', {
           okText: 'Yes',
           cancelText: 'No',
           noconfirm: false,
