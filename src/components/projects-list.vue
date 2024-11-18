@@ -56,7 +56,7 @@ export default {
 
     <v-container fluid v-if="projects === undefined">
       <v-row>
-        <v-col cols="12" align="center">
+        <v-col cols="12" class="text-center">
           <v-progress-circular indeterminate class="mx-auto" :size="128"></v-progress-circular>
         </v-col>
       </v-row>
