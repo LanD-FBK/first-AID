@@ -3,6 +3,7 @@ import DynamicButton from './dynamic-button.vue'
 import { useLoginStore, useNewTaskStore, useVariablesStore } from '@/store'
 import DialogConfirm from '../dialogs/dialog-confirm.vue'
 import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
+import dataService from '@/components/dataService.js'
 
 export default {
   components: {
@@ -21,6 +22,7 @@ export default {
       dialogNewTask: false,
     }
   },
+  emits: ['refresh'],
   props: {
     title: String,
     id: Number,
@@ -31,7 +33,9 @@ export default {
       if (
         await this.$refs.confirm.open('Confirm', 'Are you sure you want to delete this record?')
       ) {
-        console.log(this.id)
+        dataService.deleteProject(this.id).then(() => {
+          this.$emit('refresh')
+        })
       }
     },
     manageDocs: function () {
