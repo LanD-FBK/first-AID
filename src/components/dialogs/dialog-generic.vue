@@ -30,9 +30,9 @@ export default {
     )
   },
   methods: {
-    refresh: function () {
+    refresh: function (returnData) {
       this.showMe = false
-      this.$emit('refresh')
+      this.$emit('refresh', returnData)
       // if (getCurrentInstance()?.vnode?.props?.refresh) {
       //   console.log("Refresh interno")
       //   this.$emit('refresh')
