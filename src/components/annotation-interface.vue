@@ -6,12 +6,23 @@ import { Pane, Splitpanes } from 'splitpanes'
 import ConfirmDialog from '@/components/dialogs/dialog-confirm.vue'
 import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
 import { useNewTaskStore } from '@/store.js'
+import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
+import DialogDialogue from '@/components/dialogs/dialog-dialogue.vue'
 
 export default {
-  components: { DynamicButton, ConfirmDialog, highlightable, Splitpanes, Pane },
+  components: {
+    DialogDialogue,
+    DialogGeneric,
+    DynamicButton,
+    ConfirmDialog,
+    highlightable,
+    Splitpanes,
+    Pane
+  },
   data() {
     return {
       newTaskStore: useNewTaskStore(),
+      taskInfo: {},
       annotationID: undefined,
       annotationParent: 0,
       projectID: 0,
@@ -24,6 +35,7 @@ export default {
       fileContentBuffer: {},
       actorsLabels: undefined,
       actors: undefined,
+      actorsIDs: undefined,
       annotation_data: undefined,
       toBeSelected: undefined,
       actorsWithGround: undefined,
@@ -38,14 +50,18 @@ export default {
         }
       ],
       unsavedChanges: false,
-      externalGround: {}
+      externalGround: {},
+
+      selectedActorForChoice: undefined,
+      showChoiceDialog: false,
+      useGroundForChoice: []
     }
   },
   unmounted: function () {
-    window.removeEventListener("beforeunload", this.handleBeforeUnload);
+    window.removeEventListener('beforeunload', this.handleBeforeUnload)
   },
   mounted: function () {
-    window.addEventListener("beforeunload", this.handleBeforeUnload);
+    window.addEventListener('beforeunload', this.handleBeforeUnload)
 
     const vueThis = this
     this.projectID = this.$route.params.projectID
@@ -58,6 +74,7 @@ export default {
     vueThis.actorsLabels = {}
     vueThis.files = {}
     vueThis.actors = []
+    vueThis.actorsIDs = {}
     vueThis.time = 0
     vueThis.annotation_data = []
     vueThis.actorsWithGround = new Set()
@@ -91,7 +108,9 @@ export default {
         }
       }
 
+      let actor_index = 0
       for (let a of result[0].data.actors) {
+        vueThis.actorsIDs[a.label] = actor_index++
         vueThis.actorsLabels[a.label] = a.name
         if (a.ground) {
           vueThis.actorsWithGround.add(a.label)
@@ -99,6 +118,14 @@ export default {
       }
 
       vueThis.actors = result[0].data.actors
+      if (vueThis.annotation_data.length > 0) {
+        let lastSpeaker = vueThis.annotation_data[vueThis.annotation_data.length - 1].speaker
+        vueThis.selectedActorForChoice =
+          vueThis.actors[(vueThis.actorsIDs[lastSpeaker] + 1) % vueThis.actors.length].label
+      } else {
+        vueThis.selectedActorForChoice = vueThis.actors[0].label
+      }
+      vueThis.taskInfo = result[0].data
       for (let f of result[0].data.files) {
         vueThis.files[f.file.id] = f.file
       }
@@ -143,24 +170,55 @@ export default {
     // Inspired by: https://stackoverflow.com/questions/51980296/detect-back-button-in-navigation-guards-of-vue-router
     // and: https://router.vuejs.org/guide/advanced/navigation-guards.html#In-Component-Guards
     if (this.unsavedChanges) {
-      if (!
-        await this.$refs.confirm.open('Confirm', "If you live this page, you'll loose your job. Are you sure?", {
-          okText: 'Yes',
-          cancelText: 'No',
-          noconfirm: false,
-          color: "error"
-        })
+      if (
+        !(await this.$refs.confirm.open(
+          'Confirm',
+          "If you live this page, you'll loose your job. Are you sure?",
+          {
+            okText: 'Yes',
+            cancelText: 'No',
+            noconfirm: false,
+            color: 'error'
+          }
+        ))
       ) {
         return false
       }
     }
   },
   methods: {
-    handleBeforeUnload(event) {
+    shouldAddFromGround: function (index) {
+      let ret = true
+      ret = ret && index === this.annotation_data.length - 1
+      ret = ret && this.annotation_data[index].text.trim().length === 0
+      ret = ret && this.actorsWithGround.has(this.annotation_data[index].speaker)
+      ret = ret && this.annotation_data[index].ground.length > 0
+      return ret
+    },
+    addByChoice: function (data) {
+      this.unsavedChanges = true
+      this.selectedActorForChoice =
+        this.actors[(this.actorsIDs[data.speaker] + 1) % this.actors.length].label
+      data['text'] = data['turn_text']
+      this.annotation_data.push(data)
+      this.showChoiceDialog = false
+    },
+    callDynamicWithGround: function () {
+      this.useGroundForChoice = []
+      for (let g of this.annotation_data[this.annotation_data.length - 1]['ground']) {
+        this.useGroundForChoice.push(g.text)
+      }
+      this.showChoiceDialog = true
+    },
+    callDynamic: function () {
+      this.useGroundForChoice = []
+      this.showChoiceDialog = true
+    },
+    handleBeforeUnload: function (event) {
       // Inspired by: https://javokhirbekkhaydarov.medium.com/when-user-clicks-close-tab-how-to-show-confirm-modal-in-vuejs-9ef000b8cdf8
       if (this.unsavedChanges) {
-        event.preventDefault();
-        event.returnValue = "Are you sure to leave site?";
+        event.preventDefault()
+        event.returnValue = 'Are you sure to leave site?'
       }
     },
     addExternalGround: function () {
@@ -182,7 +240,7 @@ export default {
         dataService
           .editAnnotation(this.projectID, this.taskID, this.annotationID, annotation, this.comment)
           .then(function () {
-            this.unsavedChanges = false
+            vueThis.unsavedChanges = false
             vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
           })
           .catch(function (error) {
@@ -198,7 +256,7 @@ export default {
             this.annotationParent
           )
           .then(function () {
-            this.unsavedChanges = false
+            vueThis.unsavedChanges = false
             vueThis.$router.push({ name: 'tasks', params: { projectID: vueThis.projectID } })
           })
           .catch(function (error) {
@@ -212,12 +270,16 @@ export default {
         return
       }
       if (
-        await this.$refs.confirm.open('Confirm', 'There are unsaved changes. Are you sure you want to exit?', {
-          okText: 'Yes',
-          cancelText: 'No',
-          noconfirm: false,
-          color: "error"
-        })
+        await this.$refs.confirm.open(
+          'Confirm',
+          'There are unsaved changes. Are you sure you want to exit?',
+          {
+            okText: 'Yes',
+            cancelText: 'No',
+            noconfirm: false,
+            color: 'error'
+          }
+        )
       ) {
         this.unsavedChanges = false
         this.$router.push({ name: 'tasks', params: { projectID: this.projectID } })
@@ -251,12 +313,19 @@ export default {
           okText: 'Yes',
           cancelText: 'No',
           noconfirm: false,
-          color: "error"
+          color: 'error'
         })
       ) {
         this.unsavedChanges = true
         this.removing.push(index)
         setTimeout(() => {
+          if (index === this.annotation_data.length - 1) {
+            if (this.annotation_data.length > 1) {
+              this.selectedActorForChoice = this.annotation_data[index].speaker
+            } else {
+              this.selectedActorForChoice = this.actors[0].label
+            }
+          }
           this.annotation_data.splice(index, 1)
           this.removing = []
         }, 500)
@@ -275,6 +344,7 @@ export default {
         s = this.actors[1].label
       }
       let chosenActor = undefined
+      let nextActor = undefined
       let limit = 2
       let count = 0
       let previous = undefined
@@ -286,6 +356,7 @@ export default {
         for (let a of this.actors) {
           if (a.label === s && previous !== undefined) {
             chosenActor = previous
+            nextActor = a.label
             break
           }
           previous = a.label
@@ -294,6 +365,9 @@ export default {
 
       if (!this.annotation_data) {
         this.annotation_data = []
+      }
+      if (replaceIndex === this.annotation_data.length) {
+        this.selectedActorForChoice = nextActor
       }
       if (this.annotation_data.length > 0) {
         this.annotation_data.splice(replaceIndex, 0, {
@@ -316,7 +390,7 @@ export default {
           okText: 'Yes',
           cancelText: 'No',
           noconfirm: false,
-          color: "error"
+          color: 'error'
         })
       ) {
         this.unsavedChanges = true
@@ -336,13 +410,13 @@ export default {
           a.href = g.link
           a.target = '_blank'
           a.textContent = g.link
-          message += "<br />" + a.outerHTML
+          message += '<br />' + a.outerHTML
         }
-        message += "<br />" + g.text
+        message += '<br />' + g.text
         this.$refs.confirm.open('Ground info', message, {
           noconfirm: true,
-          okText: "Ok",
-          color: "primary"
+          okText: 'Ok',
+          color: 'primary'
         })
       }
     },
@@ -395,6 +469,22 @@ export default {
   <splitpanes class="default-theme">
     <pane min-size="20" class="file-pane" size="35">
       <ConfirmDialog ref="confirm"></ConfirmDialog>
+      <!--      <DialogGeneric-->
+      <!--        v-model="showChoiceDialog"-->
+      <!--        component-file="./dialog-dialogue.vue"-->
+      <!--        :data="{-->
+      <!--          speaker:-->
+      <!--            useGroundForChoice.length > 0-->
+      <!--              ? annotation_data[annotation_data.length - 1].speaker-->
+      <!--              : selectedActorForChoice,-->
+      <!--          taskInfo: taskInfo,-->
+      <!--          fileContentBuffer: fileContentBuffer,-->
+      <!--          projectID: Number(projectID),-->
+      <!--          annotation_data: annotation_data,-->
+      <!--          useGroundForChoice: useGroundForChoice-->
+      <!--        }"-->
+      <!--        @refresh="addByChoice"-->
+      <!--      ></DialogGeneric>-->
       <v-row>
         <v-col>
           <p class="ma-2 text-center" id="files-p">
@@ -462,8 +552,12 @@ export default {
         </v-row>
         <v-row v-if="Object.keys(annotation_data).length === 0">
           <v-col class="text-center ma-3">
-            <v-btn icon="" class="ma-1" @click="addRound(-1)">
-              <v-icon icon="mdi-plus"></v-icon>
+            <v-btn
+              prepend-icon="mdi-plus"
+              class="ma-1"
+              @click="addRound(-1)"
+              text="Start empty dialog"
+            >
             </v-btn>
           </v-col>
         </v-row>
@@ -480,7 +574,12 @@ export default {
           <v-col cols="7" xl="8">
             <v-row>
               <v-col>
-                <v-select :items="rolesForSelect" :item-props="true" v-model="round['speaker']" @update:modelValue="unsavedChanges = true">
+                <v-select
+                  :items="rolesForSelect"
+                  :item-props="true"
+                  v-model="round['speaker']"
+                  @update:modelValue="unsavedChanges = true"
+                >
                   <template #prepend>
                     <v-btn icon="" class="ma-1" @click="addRound(index - 1)">
                       <v-icon class="icon-up"></v-icon>
@@ -559,6 +658,46 @@ export default {
                 </template>
               </v-list>
             </v-card>
+            <v-btn
+              v-if="shouldAddFromGround(index)"
+              text="Add from ground"
+              prepend-icon="mdi-auto-fix"
+              class="mt-3"
+              @click="callDynamicWithGround"
+            ></v-btn>
+          </v-col>
+        </v-row>
+        <v-row v-if="taskInfo.inside_type === 'choice'" id="dynamic-turn">
+          <v-col>
+            <v-select :items="rolesForSelect" :item-props="true" v-model="selectedActorForChoice">
+              <template #append>
+                <v-btn
+                  class="ma-1"
+                  prepend-icon="mdi-auto-fix"
+                  text="Add dynamic turn"
+                  @click="callDynamic"
+                />
+              </template>
+            </v-select>
+          </v-col>
+        </v-row>
+        <v-row v-if="showChoiceDialog">
+          <v-col>
+            <DialogDialogue
+              v-bind="{
+                speaker:
+                  useGroundForChoice.length > 0
+                    ? annotation_data[annotation_data.length - 1].speaker
+                    : selectedActorForChoice,
+                taskInfo: taskInfo,
+                fileContentBuffer: fileContentBuffer,
+                projectID: Number(projectID),
+                annotation_data: annotation_data,
+                useGroundForChoice: useGroundForChoice
+              }"
+              @exit="showChoiceDialog = false"
+              @refresh="addByChoice"
+            ></DialogDialogue>
           </v-col>
         </v-row>
         <div class="bg-primary" id="buttons-container">
@@ -690,7 +829,7 @@ export default {
   margin-right: 0;
 }
 
-#dialogue-div > .v-row:nth-last-child(2) {
+#dialogue-div > .v-row:nth-last-child(2), #dialogue-div > .v-row#dynamic-turn {
   border-bottom: none;
 }
 
