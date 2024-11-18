@@ -106,6 +106,9 @@ export default {
         vueThis.$nextTick(function () {
           vueThis.scrollToBottom()
         })
+      }).catch(() => {
+        alert("Error in retrieving dialogue")
+        vueThis.$emit('exit')
       })
     }
   },
