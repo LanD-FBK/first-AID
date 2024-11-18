@@ -227,6 +227,7 @@ class ActorCreate(SQLModel):
     label: str
     name: str
     ground: bool
+    answers: int = 1
 
 
 class ActorCreateWithOrd(ActorCreate):
