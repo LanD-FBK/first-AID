@@ -24,12 +24,12 @@ export default {
   },
 
   getUsers: function () {
-    return axios.get('/users')
+    return axios.get('/users/')
   },
 
   //Returns '201 created' if successful
   createUser: function (email, username, password) {
-    return axios.post('/users', {
+    return axios.post('/users/', {
       email: email,
       username: username,
       password: password
@@ -37,7 +37,7 @@ export default {
   },
 
   editUser: function (email, username, password, userID) {
-    return axios.patch(String('/users/' + userID + '/edit'), {
+    return axios.patch(String('/users/' + userID + '/edit/'), {
       email: email,
       username: username,
       password: password
@@ -63,7 +63,7 @@ export default {
   */
 
   changeActiveState: function (userID) {
-    return axios.patch(String('/users/' + userID + '/changeactivestate'))
+    return axios.patch(String('/users/' + userID + '/changeactivestate/'))
   },
 
   deleteUser: function (userID) {
@@ -71,12 +71,12 @@ export default {
   },
 
   getProjects: function () {
-    return axios.get('/projects')
+    return axios.get('/projects/')
   },
 
   //TODO: data handling
   createProject: function (name, isActive, users_list, users_manage) {
-    return axios.post('/projects', {
+    return axios.post('/projects/', {
       name: name,
       is_active: isActive,
       users_list: users_list,
@@ -115,7 +115,7 @@ export default {
   },
 
   getProjectFiles: function (projectID) {
-    return axios.get('/projects/' + projectID + '/file')
+    return axios.get('/projects/' + projectID + '/file/')
   },
 
   uploadFiles: function (projectID, files) {
@@ -127,7 +127,7 @@ export default {
     }
     return axios({
       method: 'post',
-      url: '/projects/' + projectID + '/file',
+      url: '/projects/' + projectID + '/file/',
       data: form
     })
   },
@@ -152,7 +152,7 @@ export default {
     taskUsersList,
     taskFilesList
   ) {
-    return axios.post('/projects/' + projectID + '/tasks', {
+    return axios.post('/projects/' + projectID + '/tasks/', {
       name: taskName,
       start_type: taskStartType,
       inside_type: taskInsideType,
@@ -210,7 +210,7 @@ export default {
   },
 
   createAnnotation: function (projectID, taskID, annotations, comment, parent) {
-    return axios.post('/projects/' + projectID + '/tasks/' + taskID + '/annotations', {
+    return axios.post('/projects/' + projectID + '/tasks/' + taskID + '/annotations/', {
       annotations: annotations,
       comment: comment,
       parent: parent
