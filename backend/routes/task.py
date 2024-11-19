@@ -1,6 +1,7 @@
 import json
 import urllib
 from typing import Annotated
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
@@ -11,6 +12,9 @@ from routes.project import check_manage_project
 from sql.crud import get_object_by_id
 from sql.database import get_db
 from sql.models import Task, User, TaskOut, TaskCreate, TaskUserLink, File, TaskFileLink, Actor
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -103,8 +107,18 @@ async def call_create_task(
         post_data['documents'] = file_contents
         post_data['ground_required'] = {"speaker_1": False, "speaker_2": True}
 
+        # https://stackoverflow.com/questions/62384020/python-3-7-urllib-request-doesnt-follow-redirect-url
         req = urllib.request.Request(url, json.dumps(post_data).encode(), headers={"Content-Type": "application/json"})
-        urlopen = urllib.request.urlopen(req)
+        try:
+            urlopen = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            if e.status != 307:
+                raise  # not a status code that can be handled here
+            redirected_url = urllib.parse.urljoin(url, e.headers['Location'])
+            req = urllib.request.Request(redirected_url, json.dumps(post_data).encode(),
+                                         headers={"Content-Type": "application/json"})
+            urlopen = urllib.request.urlopen(req)
+            logger.info('Redirected -> %s' % redirected_url)  # the original redirected url
         response = urlopen.read()
 
         json_data = json.loads(response.decode())
