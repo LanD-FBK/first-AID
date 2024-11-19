@@ -553,16 +553,38 @@ export default {
             </p>
           </v-col>
         </v-row>
-        <v-row v-if="Object.keys(annotation_data).length === 0">
-          <v-col class="text-center ma-3">
+        <v-row v-if="Object.keys(annotation_data).length === 0" class="ma-3">
+          <v-col class="text-center" :class="{ 'v-col-4': taskInfo.inside_type === 'choice' }">
             <v-btn
               prepend-icon="mdi-plus"
               class="ma-1"
               @click="addRound(-1)"
-              text="Start empty dialog"
+              text="Start empty"
+              :disabled="this.showChoiceDialog"
             >
             </v-btn>
           </v-col>
+
+          <template v-if="taskInfo.inside_type === 'choice'">
+            <v-col class="text-center">
+              <v-select
+                :items="rolesForSelect"
+                :item-props="true"
+                v-model="selectedActorForChoice"
+                :disabled="this.showChoiceDialog"
+              >
+              </v-select>
+            </v-col>
+            <v-col class="text-center">
+              <v-btn
+                class="ma-1"
+                prepend-icon="mdi-auto-fix"
+                text="Add dynamic turn"
+                @click="callDynamic"
+                :disabled="this.showChoiceDialog"
+              />
+            </v-col>
+          </template>
         </v-row>
         <v-row
           v-for="(round, index) in annotation_data"
@@ -582,14 +604,32 @@ export default {
                   :item-props="true"
                   v-model="round['speaker']"
                   @update:modelValue="unsavedChanges = true"
+                  :disabled="this.showChoiceDialog"
                 >
                   <template #prepend>
-                    <v-btn icon="" class="ma-1" @click="addRound(index - 1)">
+                    <v-btn
+                      icon=""
+                      class="ma-1"
+                      @click="addRound(index - 1)"
+                      :disabled="this.showChoiceDialog"
+                    >
                       <v-icon class="icon-up"></v-icon>
                     </v-btn>
-                    <v-btn icon="" class="ma-1" @click="addRound(index)">
+                    <v-btn
+                      icon=""
+                      class="ma-1"
+                      @click="addRound(index)"
+                      :disabled="this.showChoiceDialog"
+                    >
                       <v-icon class="icon-down"></v-icon>
                     </v-btn>
+                    <v-btn
+                      v-if="taskInfo.inside_type === 'choice' && index === annotation_data.length - 1"
+                      class="ma-1"
+                      icon="mdi-auto-fix"
+                      @click="callDynamic"
+                      :disabled="this.showChoiceDialog"
+                    />
                   </template>
                   <template #append>
                     <v-btn
@@ -597,6 +637,7 @@ export default {
                       class="ma-1"
                       icon="mdi-trash-can-outline"
                       @click="deleteRound(index)"
+                      :disabled="this.showChoiceDialog"
                     />
                   </template>
                 </v-select>
@@ -607,6 +648,7 @@ export default {
                   @keyup="unsavedChanges = true"
                   auto-grow
                   hide-details="auto"
+                  :disabled="this.showChoiceDialog"
                 ></v-textarea>
               </v-col>
             </v-row>
@@ -670,20 +712,26 @@ export default {
             ></v-btn>
           </v-col>
         </v-row>
-        <v-row v-if="taskInfo.inside_type === 'choice'" id="dynamic-turn">
-          <v-col>
-            <v-select :items="rolesForSelect" :item-props="true" v-model="selectedActorForChoice">
-              <template #append>
-                <v-btn
-                  class="ma-1"
-                  prepend-icon="mdi-auto-fix"
-                  text="Add dynamic turn"
-                  @click="callDynamic"
-                />
-              </template>
-            </v-select>
-          </v-col>
-        </v-row>
+        <!--        <v-row v-if="taskInfo.inside_type === 'choice'" id="dynamic-turn">-->
+        <!--          <v-col>-->
+        <!--            <v-select-->
+        <!--              :items="rolesForSelect"-->
+        <!--              :item-props="true"-->
+        <!--              v-model="selectedActorForChoice"-->
+        <!--              :disabled="this.showChoiceDialog"-->
+        <!--            >-->
+        <!--              <template #append>-->
+        <!--                <v-btn-->
+        <!--                  class="ma-1"-->
+        <!--                  prepend-icon="mdi-auto-fix"-->
+        <!--                  text="Add dynamic turn"-->
+        <!--                  @click="callDynamic"-->
+        <!--                  :disabled="this.showChoiceDialog"-->
+        <!--                />-->
+        <!--              </template>-->
+        <!--            </v-select>-->
+        <!--          </v-col>-->
+        <!--        </v-row>-->
         <v-row v-if="showChoiceDialog">
           <v-col>
             <DialogDialogue
@@ -832,7 +880,8 @@ export default {
   margin-right: 0;
 }
 
-#dialogue-div > .v-row:nth-last-child(2), #dialogue-div > .v-row#dynamic-turn {
+#dialogue-div > .v-row:nth-last-child(2),
+#dialogue-div > .v-row#dynamic-turn {
   border-bottom: none;
 }
 
