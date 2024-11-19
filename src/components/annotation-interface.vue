@@ -124,8 +124,16 @@ export default {
         vueThis.selectedActorForChoice = vueThis.actors[0].label
       }
       vueThis.taskInfo = result[0].data
+      let firstOne = undefined
       for (let f of result[0].data.files) {
         vueThis.files[f.file.id] = f.file
+        if (firstOne === undefined) {
+          firstOne = f.file.id
+        }
+      }
+      if (firstOne !== undefined) {
+        vueThis.selectedFile = firstOne
+        vueThis.loadFile()
       }
       vueThis.loadingData = false
     })
