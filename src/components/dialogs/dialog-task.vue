@@ -104,7 +104,7 @@ export default {
         .catch(async function (error) {
           await self.$refs.confirm.open(
             'Error',
-            error.message + '<br />' + error.response.statusText,
+            error?.message + '<br />' + error?.response?.statusText,
             {
               noconfirm: true
             }
@@ -310,7 +310,12 @@ export default {
 <template>
   <v-card title="Add New Task" prepend-icon="mdi-file-document-plus-outline">
     <DialogConfirm ref="confirm"></DialogConfirm>
-    <v-form v-model="validNewTaskData" :rules="rulesNewTask" @submit.prevent="submitNewTask">
+    <v-form
+      v-model="validNewTaskData"
+      :rules="rulesNewTask"
+      @submit.prevent="submitNewTask"
+      :disabled="loadingSubmitNewTask"
+    >
       <v-card-text>
         <v-row dense>
           <v-col cols="12" md="8" sm="8">
@@ -342,7 +347,11 @@ export default {
               >
                 <template v-slot:prepend>
                   <v-list-item-action>
-                    <v-checkbox-btn v-model="newTaskUsers" :value="user.user.id" />
+                    <v-checkbox-btn
+                      v-model="newTaskUsers"
+                      :value="user.user.id"
+                      :disabled="loadingSubmitNewTask"
+                    />
                   </v-list-item-action>
                 </template>
               </v-list-item>
@@ -361,7 +370,11 @@ export default {
               >
                 <template v-slot:prepend>
                   <v-list-item-action>
-                    <v-checkbox-btn v-model="newTaskFiles" :value="file.id" />
+                    <v-checkbox-btn
+                      v-model="newTaskFiles"
+                      :value="file.id"
+                      :disabled="loadingSubmitNewTask"
+                    />
                   </v-list-item-action>
                 </template>
               </v-list-item>
@@ -381,7 +394,7 @@ export default {
             <v-text-field
               v-model="initialDataEndpoint"
               label="URL"
-              :disabled="isInitialDataFormDisabled"
+              :disabled="loadingSubmitNewTask || isInitialDataFormDisabled"
             >
               <template v-slot:append>
                 <v-btn
@@ -396,7 +409,7 @@ export default {
               v-model="selectedInitialDataGenerationMethod"
               label="Generation Method"
               :items="initialDataMethods"
-              :disabled="isInitialDataSelectionDisabled"
+              :disabled="loadingSubmitNewTask || isInitialDataSelectionDisabled"
             ></v-select>
           </v-col>
           <v-col cols="6">
@@ -407,7 +420,11 @@ export default {
               item-title="complete"
               item-value="apiFormat"
             ></v-select>
-            <v-text-field v-model="newTurnEndpoint" label="URL" :disabled="isNewTurnFormDisabled">
+            <v-text-field
+              v-model="newTurnEndpoint"
+              label="URL"
+              :disabled="loadingSubmitNewTask || isNewTurnFormDisabled"
+            >
               <template v-slot:append>
                 <v-btn
                   text="Go"
@@ -421,7 +438,7 @@ export default {
               v-model="selectedNewTurnGenerationMethod"
               label="Generation Method"
               :items="newTurnMethods"
-              :disabled="isNewTurnSelectionDisabled"
+              :disabled="loadingSubmitNewTask || isNewTurnSelectionDisabled"
             ></v-select>
           </v-col>
 
@@ -436,7 +453,7 @@ export default {
                 <v-col :cols="isNewTurnFormDisabled ? 6 : 5">
                   <v-text-field
                     v-model="role.id"
-                    :disabled="isNewTaskRolesDisabled"
+                    :disabled="loadingSubmitNewTask || isNewTaskRolesDisabled"
                     label="Speaker ID"
                   >
                     <template v-slot:prepend>
@@ -451,7 +468,7 @@ export default {
                             "
                             :color="role.ground ? 'primary' : ''"
                             @click="role.ground = !role.ground"
-                            :disabled="isNewTaskRolesDisabled"
+                            :disabled="loadingSubmitNewTask || isNewTaskRolesDisabled"
                           />
                         </template>
                       </v-tooltip>
@@ -471,7 +488,7 @@ export default {
                 <v-col :cols="isNewTurnFormDisabled ? 6 : 5">
                   <v-text-field
                     v-model="role.name"
-                    :disabled="isNewTaskRolesDisabled"
+                    :disabled="loadingSubmitNewTask || isNewTaskRolesDisabled"
                     label="Speaker Role"
                   >
                     <template v-slot:append>
@@ -479,7 +496,7 @@ export default {
                         icon="mdi-trash-can-outline"
                         variant="tonal"
                         @click="deleteRole()"
-                        :disabled="isNewTaskRolesDeleteDisabled"
+                        :disabled="loadingSubmitNewTask || isNewTaskRolesDeleteDisabled"
                       />
                     </template>
                   </v-text-field>
@@ -487,7 +504,7 @@ export default {
               </v-row>
               <v-btn
                 class="mb-4"
-                :disabled="isNewTaskRolesDisabled"
+                :disabled="loadingSubmitNewTask || isNewTaskRolesDisabled"
                 variant="tonal"
                 text="Add New Role"
                 @click="addNewRole()"
