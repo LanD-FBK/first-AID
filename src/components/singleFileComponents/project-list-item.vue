@@ -93,11 +93,13 @@ export default {
             <v-col cols="12" lg="6" sm="9" md="6" xl="6" xs="6">
               <v-card-actions>
                 <DynamicButton
+                  v-if="loginStore.is_admin"
                   :icon="'mdi-file-document-multiple-outline'"
                   :text="'Manage Docs'"
                   @click.stop="manageDocs(id)"
                 />
                 <DynamicButton
+                  v-if="loginStore.is_admin"
                   :icon="'mdi-account-circle-outline'"
                   :text="'Manage Users'"
                   @click.stop="manageUsers()"
@@ -108,6 +110,7 @@ export default {
 <!--                  @click.stop="manageTasks()"-->
 <!--                />-->
                 <DynamicButton
+                  v-if="loginStore.is_admin"
                   :icon="'mdi-trash-can-outline'"
                   :text="'Delete'"
                   color="error"
