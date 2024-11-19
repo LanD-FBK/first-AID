@@ -6,13 +6,11 @@ import { Pane, Splitpanes } from 'splitpanes'
 import ConfirmDialog from '@/components/dialogs/dialog-confirm.vue'
 import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
 import { useNewTaskStore } from '@/store.js'
-import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
 import DialogDialogue from '@/components/dialogs/dialog-dialogue.vue'
 
 export default {
   components: {
     DialogDialogue,
-    DialogGeneric,
     DynamicButton,
     ConfirmDialog,
     highlightable,
