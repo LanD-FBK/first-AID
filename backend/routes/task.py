@@ -86,6 +86,9 @@ async def call_create_task(
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
         roles = allowed_methods[task.meta['start_type_method']]
+        for role in roles:
+            if "answers" not in role:
+                role['answers'] = 1
         actors_list = []
         for a in task.actors_list:
             actors_list.append(a.__dict__)
