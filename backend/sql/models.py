@@ -246,6 +246,7 @@ class TaskCreate(TaskBase):
     actors_list: list[ActorCreate] = []
     users_list: list[int] = []
     files_list: list[int] = []
+    tryout: bool = False
 
 
 ### Tables - Annotation

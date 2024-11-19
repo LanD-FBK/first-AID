@@ -1,6 +1,6 @@
 import json
 import urllib
-from typing import Annotated
+from typing import Annotated, Optional
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,7 +25,8 @@ async def call_create_task(
         user: Annotated[User, Depends(get_current_user)],
         project_id: int,
         task: TaskCreate,
-) -> TaskOut:
+) -> Optional[TaskOut]:
+    tryout = task.tryout
     db_project = check_manage_project(db, project_id, user)
     allowed_files = set()
     files = []
@@ -148,6 +149,9 @@ async def call_create_task(
         if a.name in actors:
             raise HTTPException(status_code=400, detail=f"Actor {a.name} is duplicated")
         actors.add(a.name)
+
+    if tryout:
+        return None
 
     ord = 0
     for a in task.actors_list:
