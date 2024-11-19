@@ -52,11 +52,17 @@ export default {
       newTurnRoles: [],
 
       dialogDifferentMethodsError: false,
-      newTaskRoles: []
+      newTaskRoles: [],
+      oneTaskPerFile: false,
+      loadingText: '',
+      indexedFiles: {}
     }
   },
   mounted: function () {
     this.resetTaskRoles()
+    for (let f of this.files) {
+      this.indexedFiles[f.id] = f.name
+    }
   },
   methods: {
     resetTaskRoles: function () {
@@ -119,11 +125,64 @@ export default {
         })
     },
 
+    makeRecursiveRequest(tracker, self, meta, sendNewTaskRoles) {
+      // https://stackoverflow.com/questions/57554076/run-ajax-request-one-by-one-on-whole-table
+      let thisFileIDs = [tracker.pop()]
+      let fileName = this.indexedFiles[thisFileIDs[0]]
+      let vueThis = this
+      let fileTotal = self.newTaskFiles.length
+      let thisFiles = fileTotal - tracker.length
+      vueThis.loadingText =
+        'Adding task ' +
+        thisFiles +
+        '/' +
+        fileTotal +
+        ' (' +
+        fileName +
+        ')...'
+      dataService
+        .addTaskToProject(
+          this.projectID,
+          this.taskName + " - " + fileName,
+          this.initialDataTaskSelection,
+          this.newTurnTaskSelection,
+          this.selectedTaskLanguage,
+          this.isNewTaskActive,
+          meta,
+          sendNewTaskRoles,
+          this.newTaskUsers,
+          thisFileIDs,
+        )
+        .then(function () {
+          if (tracker.length > 0) {
+            vueThis.makeRecursiveRequest(tracker, self, meta, sendNewTaskRoles)
+          } else {
+            self.loadingSubmitNewTask = false
+            self.$emit('refresh')
+          }
+        })
+        .catch(async function (error) {
+          let errorMsg = error.message
+          if (error?.response?.statusText) {
+            errorMsg += '<br />' + error.response.statusText
+          }
+          if (error?.response?.data?.detail) {
+            errorMsg += '<br />' + error.response.data.detail
+          }
+          self.$refs.confirm.open('Error', errorMsg, {
+            noconfirm: true
+          })
+          self.loadingSubmitNewTask = false
+          self.$emit('refresh')
+        })
+    },
+
     //Send new task to API
     submitNewTask: function () {
       const self = this
       if (this.validNewTaskData) {
         this.loadingSubmitNewTask = true
+        this.loadingText = 'Starting action...'
         let meta = {}
         let sendNewTaskRoles = []
         for (let role of this.newTaskRoles) {
@@ -146,37 +205,79 @@ export default {
             inside_type_api: this.selectedNewTurnGenerationMethod
           })
         }
-        dataService
-          .addTaskToProject(
-            this.projectID,
-            this.taskName,
-            this.initialDataTaskSelection,
-            this.newTurnTaskSelection,
-            this.selectedTaskLanguage,
-            this.isNewTaskActive,
-            meta,
-            sendNewTaskRoles,
-            this.newTaskUsers,
-            this.newTaskFiles
-          )
-          .then(function () {
-            self.$emit('refresh')
-          })
-          .catch(function (error) {
-            let errorMsg = error.message
-            if (error?.response?.statusText) {
-              errorMsg += '<br />' + error.response.statusText
-            }
-            if (error?.response?.data?.detail) {
-              errorMsg += '<br />' + error.response.data.detail
-            }
-            self.$refs.confirm.open('Error', errorMsg, {
-              noconfirm: true
+
+        if (this.newTaskFiles.length === 0) {
+          alert('Please select at least one file')
+          self.loadingSubmitNewTask = false
+          return
+        }
+
+        if (this.oneTaskPerFile) {
+          let allFiles = [...this.newTaskFiles]
+          dataService
+            .addTaskToProject(
+              this.projectID,
+              this.taskName,
+              this.initialDataTaskSelection,
+              this.newTurnTaskSelection,
+              this.selectedTaskLanguage,
+              this.isNewTaskActive,
+              meta,
+              sendNewTaskRoles,
+              this.newTaskUsers,
+              [allFiles[0]],
+              true
+            )
+            .then(function () {
+              self.makeRecursiveRequest(allFiles, self, meta, sendNewTaskRoles)
             })
-          })
-          .then(function () {
-            self.loadingSubmitNewTask = false
-          })
+            .catch(function (error) {
+              let errorMsg = error.message
+              if (error?.response?.statusText) {
+                errorMsg += '<br />' + error.response.statusText
+              }
+              if (error?.response?.data?.detail) {
+                errorMsg += '<br />' + error.response.data.detail
+              }
+              self.$refs.confirm.open('Error', errorMsg, {
+                noconfirm: true
+              })
+              self.loadingSubmitNewTask = false
+            })
+        } else {
+          this.loadingText = 'Adding task...'
+          dataService
+            .addTaskToProject(
+              this.projectID,
+              this.taskName,
+              this.initialDataTaskSelection,
+              this.newTurnTaskSelection,
+              this.selectedTaskLanguage,
+              this.isNewTaskActive,
+              meta,
+              sendNewTaskRoles,
+              this.newTaskUsers,
+              this.newTaskFiles
+            )
+            .then(function () {
+              self.$emit('refresh')
+            })
+            .catch(function (error) {
+              let errorMsg = error.message
+              if (error?.response?.statusText) {
+                errorMsg += '<br />' + error.response.statusText
+              }
+              if (error?.response?.data?.detail) {
+                errorMsg += '<br />' + error.response.data.detail
+              }
+              self.$refs.confirm.open('Error', errorMsg, {
+                noconfirm: true
+              })
+            })
+            .then(function () {
+              self.loadingSubmitNewTask = false
+            })
+        }
       }
     },
 
@@ -361,6 +462,13 @@ export default {
           <!--Files list-->
           <v-col cols="6">
             <v-list height="200px">
+              <v-list-item title="Add one task for file">
+                <template v-slot:prepend>
+                  <v-list-item-action>
+                    <v-checkbox-btn v-model="oneTaskPerFile" :disabled="loadingSubmitNewTask" />
+                  </v-list-item-action>
+                </template>
+              </v-list-item>
               <v-list-subheader>Select files</v-list-subheader>
               <v-list-item
                 v-for="file of files"
@@ -516,7 +624,11 @@ export default {
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn text="Cancel" variant="tonal" @click="$emit('exit')" />
+        <p class="me-3" v-if="loadingSubmitNewTask">
+          <v-progress-circular class="me-2" indeterminate size="20"></v-progress-circular>
+          {{ loadingText }}
+        </p>
+        <v-btn text="Cancel" variant="tonal" @click="$emit('exit')" :disabled="loadingSubmitNewTask"/>
         <!--type="submit"-->
         <v-btn
           text="Create"

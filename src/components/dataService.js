@@ -150,7 +150,8 @@ export default {
     taskMeta,
     taskActorsList,
     taskUsersList,
-    taskFilesList
+    taskFilesList,
+    tryout = false
   ) {
     return axios.post('/projects/' + projectID + '/tasks/', {
       name: taskName,
@@ -161,7 +162,8 @@ export default {
       meta: taskMeta,
       actors_list: taskActorsList,
       users_list: taskUsersList,
-      files_list: taskFilesList
+      files_list: taskFilesList,
+      tryout: !!tryout
     })
   },
 
