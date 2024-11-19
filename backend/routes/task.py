@@ -110,15 +110,18 @@ async def call_create_task(
         # https://stackoverflow.com/questions/62384020/python-3-7-urllib-request-doesnt-follow-redirect-url
         req = urllib.request.Request(url, json.dumps(post_data).encode(), headers={"Content-Type": "application/json"})
         try:
-            urlopen = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            if e.status != 307:
-                raise  # not a status code that can be handled here
-            redirected_url = urllib.parse.urljoin(url, e.headers['Location'])
-            req = urllib.request.Request(redirected_url, json.dumps(post_data).encode(),
-                                         headers={"Content-Type": "application/json"})
-            urlopen = urllib.request.urlopen(req)
-            logger.info('Redirected -> %s' % redirected_url)  # the original redirected url
+            try:
+                urlopen = urllib.request.urlopen(req)
+            except urllib.error.HTTPError as e:
+                if e.status != 307:
+                    raise  # not a status code that can be handled here
+                redirected_url = urllib.parse.urljoin(url, e.headers['Location'])
+                req = urllib.request.Request(redirected_url, json.dumps(post_data).encode(),
+                                             headers={"Content-Type": "application/json"})
+                urlopen = urllib.request.urlopen(req)
+                logger.info('Redirected -> %s' % redirected_url)  # the original redirected url
+        except:
+            raise HTTPException(status_code=400, detail=f"Unable to run script")
         response = urlopen.read()
 
         json_data = json.loads(response.decode())
