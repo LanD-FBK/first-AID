@@ -200,6 +200,11 @@ export default {
       this.selectedActorForChoice =
         this.actors[(this.actorsIDs[data.speaker] + 1) % this.actors.length].label
       data['text'] = data['turn_text']
+      if (this.useGroundForChoice.length > 0) {
+        let g = this.annotation_data[this.annotation_data.length - 1].ground
+        this.annotation_data.pop()
+        data['ground'] = g
+      }
       this.annotation_data.push(data)
       this.showChoiceDialog = false
     },
