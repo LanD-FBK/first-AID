@@ -21,7 +21,7 @@ app = FastAPI(
     # https://stackoverflow.com/questions/70793174/fastapi-schemahidden-true-not-working-when-trying-to-hide-the-schema-sectio
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}
 )
-# app.add_middleware(MyMiddleware)
+app.add_middleware(MyMiddleware)
 
 app.include_router(login.router, tags=["Login"])
 app.include_router(user.router, tags=["Users"], prefix="/users")
