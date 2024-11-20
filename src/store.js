@@ -65,8 +65,11 @@ export const useNewTaskStore = defineStore('newTask', {
       { complete: 'Choice', apiFormat: 'choice' }
     ],
     language: [
-      { complete: 'Italiano', apiFormat: 'it' },
-      { complete: 'English', apiFormat: 'en' }
+      { complete: 'Italian', apiFormat: 'it' },
+      { complete: 'English', apiFormat: 'en' },
+      { complete: 'Spanish', apiFormat: 'es' },
+      { complete: 'Polish', apiFormat: 'pl' },
+      { complete: 'Maltese', apiFormat: 'mt' },
     ],
     initialExternalGround: {
       name: "",
