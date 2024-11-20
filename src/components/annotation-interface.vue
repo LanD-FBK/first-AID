@@ -199,6 +199,7 @@ export default {
       ret = ret && this.annotation_data[index].text.trim().length === 0
       ret = ret && this.actorsWithGround.has(this.annotation_data[index].speaker)
       ret = ret && this.annotation_data[index].ground.length > 0
+      ret = ret && this.taskInfo.inside_type === 'choice'
       return ret
     },
     addByChoice: function (data) {
