@@ -55,7 +55,9 @@ export default {
       newTaskRoles: [],
       oneTaskPerFile: false,
       loadingText: '',
-      indexedFiles: {}
+      indexedFiles: {},
+
+      userFilter: ''
     }
   },
   mounted: function () {
@@ -65,14 +67,22 @@ export default {
     }
   },
   methods: {
-    selectAllUsers: function () {
+    selectNoneUsers: function () {
       this.newTaskUsers = []
+    },
+    selectAllUsers: function () {
+      this.selectNoneUsers()
       for (let user of this.users) {
-        this.newTaskUsers.push(user.user.id)
+        if (user.user.username.includes(this.userFilter)) {
+          this.newTaskUsers.push(user.user.id)
+        }
       }
     },
-    selectAllFiles: function () {
+    selectNoneFiles: function () {
       this.newTaskFiles = []
+    },
+    selectAllFiles: function () {
+      this.selectNoneFiles()
       for (let file of this.files) {
         this.newTaskFiles.push(file.id)
       }
@@ -161,7 +171,7 @@ export default {
         .then(function () {
           console.log('Done: ' + fileName)
         })
-        .catch(async function (error) {
+        .catch(async function () {
           console.log('Error: ' + fileName)
           // let errorMsg = error.message
           // if (error?.response?.statusText) {
@@ -449,7 +459,22 @@ export default {
           <!--Users list-->
           <v-col cols="6">
             <v-list height="200px">
-              <v-list-subheader>Select users  <a href="#" @click.stop.prevent="selectAllUsers">ALL</a></v-list-subheader>
+              <v-list-subheader class="d-flex">
+                Select users
+                <v-btn
+                  @click="selectNoneUsers"
+                  icon="mdi-cancel"
+                  size="x-small"
+                  variant="plain"
+                ></v-btn>
+                <v-btn
+                  @click="selectAllUsers"
+                  icon="mdi-check-all"
+                  size="x-small"
+                  variant="plain"
+                ></v-btn>
+                <input id="user-filter" type="text" class="ms-3 border-b" placeholder="Filter" v-model="userFilter" />
+              </v-list-subheader>
               <v-list-item
                 v-for="user in users"
                 :key="user.user.id"
@@ -479,7 +504,21 @@ export default {
                   </v-list-item-action>
                 </template>
               </v-list-item>
-              <v-list-subheader>Select files <a href="#" @click.stop.prevent="selectAllFiles">ALL</a></v-list-subheader>
+              <v-list-subheader>
+                Select files
+                <v-btn
+                  @click="selectNoneFiles"
+                  icon="mdi-cancel"
+                  size="x-small"
+                  variant="plain"
+                ></v-btn>
+                <v-btn
+                  @click="selectAllFiles"
+                  icon="mdi-check-all"
+                  size="x-small"
+                  variant="plain"
+                ></v-btn>
+              </v-list-subheader>
               <v-list-item
                 v-for="file of files"
                 :key="file.id"
@@ -663,3 +702,9 @@ export default {
   <!--      </template>-->
   <!--    </v-snackbar>-->
 </template>
+
+<style>
+#user-filter {
+  width: 100px;
+}
+</style>
