@@ -65,6 +65,18 @@ export default {
     }
   },
   methods: {
+    selectAllUsers: function () {
+      this.newTaskUsers = []
+      for (let user of this.users) {
+        this.newTaskUsers.push(user.user.id)
+      }
+    },
+    selectAllFiles: function () {
+      this.newTaskFiles = []
+      for (let file of this.files) {
+        this.newTaskFiles.push(file.id)
+      }
+    },
     resetTaskRoles: function () {
       this.newTaskRoles = [...this.newTaskStore.initialTaskRoles]
     },
@@ -437,9 +449,9 @@ export default {
           <!--Users list-->
           <v-col cols="6">
             <v-list height="200px">
-              <v-list-subheader>Select users</v-list-subheader>
+              <v-list-subheader>Select users  <a href="#" @click.stop.prevent="selectAllUsers">ALL</a></v-list-subheader>
               <v-list-item
-                v-for="user in this.users"
+                v-for="user in users"
                 :key="user.user.id"
                 :title="user.user.username"
                 :subtitle="user.user.email"
@@ -467,7 +479,7 @@ export default {
                   </v-list-item-action>
                 </template>
               </v-list-item>
-              <v-list-subheader>Select files</v-list-subheader>
+              <v-list-subheader>Select files <a href="#" @click.stop.prevent="selectAllFiles">ALL</a></v-list-subheader>
               <v-list-item
                 v-for="file of files"
                 :key="file.id"
