@@ -132,18 +132,11 @@ export default {
       let vueThis = this
       let fileTotal = self.newTaskFiles.length
       let thisFiles = fileTotal - tracker.length
-      vueThis.loadingText =
-        'Adding task ' +
-        thisFiles +
-        '/' +
-        fileTotal +
-        ' (' +
-        fileName +
-        ')...'
+      vueThis.loadingText = 'Adding task ' + thisFiles + '/' + fileTotal + ' (' + fileName + ')...'
       dataService
         .addTaskToProject(
           this.projectID,
-          this.taskName + " - " + fileName,
+          this.taskName + ' - ' + fileName,
           this.initialDataTaskSelection,
           this.newTurnTaskSelection,
           this.selectedTaskLanguage,
@@ -151,8 +144,26 @@ export default {
           meta,
           sendNewTaskRoles,
           this.newTaskUsers,
-          thisFileIDs,
+          thisFileIDs
         )
+        .then(function () {
+          console.log('Done: ' + fileName)
+        })
+        .catch(async function (error) {
+          console.log('Error: ' + fileName)
+          // let errorMsg = error.message
+          // if (error?.response?.statusText) {
+          //   errorMsg += '<br />' + error.response.statusText
+          // }
+          // if (error?.response?.data?.detail) {
+          //   errorMsg += '<br />' + error.response.data.detail
+          // }
+          // self.$refs.confirm.open('Error', errorMsg, {
+          //   noconfirm: true
+          // })
+          // self.loadingSubmitNewTask = false
+          // self.$emit('refresh')
+        })
         .then(function () {
           if (tracker.length > 0) {
             vueThis.makeRecursiveRequest(tracker, self, meta, sendNewTaskRoles)
@@ -160,20 +171,6 @@ export default {
             self.loadingSubmitNewTask = false
             self.$emit('refresh')
           }
-        })
-        .catch(async function (error) {
-          let errorMsg = error.message
-          if (error?.response?.statusText) {
-            errorMsg += '<br />' + error.response.statusText
-          }
-          if (error?.response?.data?.detail) {
-            errorMsg += '<br />' + error.response.data.detail
-          }
-          self.$refs.confirm.open('Error', errorMsg, {
-            noconfirm: true
-          })
-          self.loadingSubmitNewTask = false
-          self.$emit('refresh')
         })
     },
 
@@ -629,7 +626,12 @@ export default {
           <v-progress-circular class="me-2" indeterminate size="20"></v-progress-circular>
           {{ loadingText }}
         </p>
-        <v-btn text="Cancel" variant="tonal" @click="$emit('exit')" :disabled="loadingSubmitNewTask"/>
+        <v-btn
+          text="Cancel"
+          variant="tonal"
+          @click="$emit('exit')"
+          :disabled="loadingSubmitNewTask"
+        />
         <!--type="submit"-->
         <v-btn
           text="Create"
