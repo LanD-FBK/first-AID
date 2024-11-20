@@ -214,6 +214,7 @@ export default {
 
         if (this.oneTaskPerFile) {
           let allFiles = [...this.newTaskFiles]
+          allFiles = allFiles.reverse()
           dataService
             .addTaskToProject(
               this.projectID,
