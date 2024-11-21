@@ -21,10 +21,23 @@ export default {
       isProjectActive: true,
       projectUsersList: [],
       adminUsersList: [],
-      successNewProjectSnackbar: false
+      successNewProjectSnackbar: false,
+      userFilter: ''
     }
   },
   methods: {
+    selectNoneUsers: function () {
+      this.projectUsersList = []
+    },
+    selectAllUsers: function () {
+      this.selectNoneUsers()
+      console.log(this.usersList)
+      for (let user of this.usersList) {
+        if (user.username.includes(this.userFilter)) {
+          this.projectUsersList.push(user.id)
+        }
+      }
+    },
     submitNewProject: function () {
       const self = this
       if (this.validNewProjectData) {
@@ -88,7 +101,21 @@ export default {
           <v-col cols="12">
             <v-progress-circular indeterminate v-if="usersList === undefined"></v-progress-circular>
             <v-list v-else>
-              <v-list-subheader>Select Users</v-list-subheader>
+              <v-list-subheader>Select Users
+                <v-btn
+                  @click="selectNoneUsers"
+                  icon="mdi-cancel"
+                  size="x-small"
+                  variant="plain"
+                ></v-btn>
+                <v-btn
+                  @click="selectAllUsers"
+                  icon="mdi-check-all"
+                  size="x-small"
+                  variant="plain"
+                ></v-btn>
+                <input id="user-filter" type="text" class="ms-3 border-b" placeholder="Filter" v-model="userFilter" />
+              </v-list-subheader>
               <v-list-item v-for="user in usersList" :key="user.id">
                 <!--Prepend checkbox for project inclusion-->
                 <template v-slot:prepend>
