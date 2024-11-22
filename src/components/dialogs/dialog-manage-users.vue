@@ -8,7 +8,10 @@ export default {
       users: undefined,
       editProjectAdminList: [],
       editProjectUserSelect: [],
-      dialogAddUserToProject: false
+      originalInfo: {
+        users: [],
+        admin: []
+      }
     }
   },
   props: {
@@ -16,42 +19,56 @@ export default {
   },
   emits: ['exit'],
   methods: {
-    submitManageUsers: function () {
-      const self = this
-      this.loadingEditUsers = true
-      let submitAdminList = []
-      let submitUserList = []
-      for (let user of this.users) {
-        submitUserList.push(user.id)
-        if (this.editProjectAdminList.includes(user.id)) {
-          submitAdminList.push(true)
-        } else {
-          submitAdminList.push(false)
+    updateInfo: function () {
+      let self = this
+      // https://stackoverflow.com/questions/1187518/how-to-get-the-difference-between-two-arrays-in-javascript
+      let removed = this.originalInfo.users.filter(x => !this.editProjectUserSelect.includes(x))
+      let promises = []
+      for (let userID of removed) {
+        promises.push(dataService.removeUserFromProject(this.id, userID))
+      }
+      for (let userID of this.editProjectUserSelect) {
+        promises.push(dataService.assignUserToProject(this.id, userID, this.editProjectAdminList.includes(userID)))
+      }
+
+      Promise.all(promises).then(function () {
+        self.$emit('exit')
+      }).catch(function () {
+        alert("Errore")
+      })
+    },
+    updateAdminUser: function (userID) {
+      if (!this.editProjectUserSelect.includes(userID)) {
+        const index = this.editProjectAdminList.indexOf(userID)
+        if (index > -1) {
+          this.editProjectAdminList.splice(index, 1)
         }
       }
-      dataService
-        .editProject(this.id, this.title, this.isActive, submitUserList, submitAdminList)
-        .then(function () {
-          self.loadingEditUsers = false
-          self.$emit('exit')
-        })
-        .catch(function (error) {
-          console.log(error)
-          //TODO: error handling with error dialog component
-        })
+    },
+    updateAdmin: function (userID) {
+      if (!this.editProjectUserSelect.includes(userID)) {
+        this.editProjectUserSelect.push(userID)
+      }
     },
     editProjectDialogAdminDisplay: function (userID) {
       return this.editProjectAdminList.includes(userID) ? 'Admin User' : 'Normal User'
     },
     updateUsers: function () {
       const self = this
+      self.editProjectAdminList = []
+      self.editProjectUserSelect = []
       dataService.getUsers().then(function (data) {
-        self.users = data.data
-        for (let user of self.users) {
-          if (user.is_project_admin) {
-            this.editProjectAdminList.push(user.user_id)
+        dataService.getProjectByID(self.id).then(function (prData) {
+          for (let user of prData.data.users) {
+            self.editProjectUserSelect.push(user.user_id)
+            if (user.is_project_admin) {
+              self.editProjectAdminList.push(user.user_id)
+            }
           }
-        }
+          self.originalInfo.users = [...self.editProjectUserSelect]
+          self.originalInfo.admin = [...self.editProjectAdminList]
+          self.users = data.data
+        })
       })
     }
   },
@@ -74,6 +91,16 @@ export default {
           <v-list-subheader>Select the User to edit</v-list-subheader>
           <v-list-item v-for="user in users" :key="user.id">
             <!--Prepend checkbox for project inclusion-->
+            <template v-slot:prepend>
+              <v-list-item-action>
+                <v-checkbox-btn
+                  v-model="editProjectUserSelect"
+                  :value="user.id"
+                  @change="updateAdminUser(user.id)"
+                ></v-checkbox-btn>
+              </v-list-item-action>
+            </template>
+
             <template v-slot:append>
               <v-list-item-action>
                 <v-switch
@@ -83,16 +110,8 @@ export default {
                   persistent-hint
                   :label="editProjectDialogAdminDisplay(user.id)"
                   :value="user.id"
+                  @change="updateAdmin(user.id)"
                 ></v-switch>
-              </v-list-item-action>
-            </template>
-
-            <template v-slot:prepend>
-              <v-list-item-action>
-                <v-checkbox-btn
-                  v-model="editProjectUserSelect"
-                  :value="user.id"
-                ></v-checkbox-btn>
               </v-list-item-action>
             </template>
 
@@ -105,19 +124,8 @@ export default {
     <v-divider></v-divider>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn
-        text="Remove Users"
-        variant="tonal"
-        color="error"
-        :disabled="editProjectUserSelect.length === 0"
-      ></v-btn>
-      <v-btn
-        text="Add New User"
-        variant="tonal"
-        color="primary"
-        @click="dialogAddUserToProject = true"
-      ></v-btn>
-      <v-btn text="Done" variant="tonal" @click="submitManageUsers()"></v-btn>
+      <v-btn text="Update" variant="tonal" color="primary" @click="updateInfo"></v-btn>
+      <v-btn text="Cancel" variant="tonal" @click="$emit('exit')"></v-btn>
     </v-card-actions>
   </v-card>
 </template>
