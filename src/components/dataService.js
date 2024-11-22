@@ -98,15 +98,21 @@ export default {
   },
 
   assignUserToProject: function (projectID, userID, isAdmin) {
-    return axios.put('/projects/' + projectID, {
-      user_id: userID,
-      user_manage: isAdmin
-    })
+    return axios.put(
+      '/projects/' + projectID + '/assignuser',
+      {},
+      {
+        params: {
+          user_id: userID,
+          user_manage: isAdmin
+        }
+      }
+    )
   },
 
   removeUserFromProject: function (projectID, userID) {
     return axios.delete('/projects/' + projectID + '/revokeuser', {
-      user_id: userID
+      params: { user_id: userID }
     })
   },
 
