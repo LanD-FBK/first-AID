@@ -190,7 +190,12 @@ def edit_project(db: Session, db_project: Project, project: ProjectCreate, users
 def assign_user_to_project(db: Session, project_id: int, user_id: int, user_manage: bool):
     db_project = get_object_by_id(db, project_id, Project)
     db_user = get_object_by_id(db, user_id, User)
-    db_obj = ProjectUserLink(project=db_project, user=db_user, is_project_admin=user_manage)
+    db_obj = db.query(ProjectUserLink).where(ProjectUserLink.project_id == db_project.id).where(
+        ProjectUserLink.user_id == db_user.id).first()
+    if not db_obj:
+        db_obj = ProjectUserLink(project=db_project, user=db_user, is_project_admin=user_manage)
+    else:
+        db_obj.is_project_admin = user_manage
     db.add(db_obj)
     db.commit()
     db.refresh(db_project)
