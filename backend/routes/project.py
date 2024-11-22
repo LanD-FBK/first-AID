@@ -123,7 +123,7 @@ async def call_edit_project(
 
 
 @router.put("/{project_id}/assignuser")
-async def call_edit_project(
+async def call_assign_user(
         db: Annotated[Session, Depends(get_db)],
         user: Annotated[bool, Depends(get_current_user)],
         user_id: int,
@@ -137,7 +137,7 @@ async def call_edit_project(
 
 
 @router.delete("/{project_id}/revokeuser")
-async def call_edit_project(
+async def call_revoke_user(
         db: Annotated[Session, Depends(get_db)],
         user: Annotated[bool, Depends(get_current_user)],
         user_id: int,
@@ -145,7 +145,7 @@ async def call_edit_project(
 ) -> ProjectOutputWithUsers:
     check_manage_project(db, project_id, user)
     # db_user = crud.get_object_by_id(db, user_id, User)
-    is_user_manager = crud.get_existing_elements(ProjectUserLink) \
+    is_user_manager = crud.get_existing_elements(db, ProjectUserLink) \
         .where(ProjectUserLink.project_id == project_id) \
         .where(ProjectUserLink.user_id == user_id) \
         .where(ProjectUserLink.is_project_admin == True).first()
