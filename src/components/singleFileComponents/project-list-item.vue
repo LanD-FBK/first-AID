@@ -64,7 +64,7 @@ export default {
   <v-container fluid>
     <ConfirmDialog ref="confirm"></ConfirmDialog>
     <DialogGeneric
-      v-if="loginStore.is_admin"
+      v-if="loginStore.is_admin  || loginStore.project_manager.includes(id)"
       v-model="dialogDocs"
       component-file="./dialog-manage-docs.vue"
       :data="{id: id}"
@@ -93,7 +93,7 @@ export default {
             <v-col cols="12" lg="6" sm="9" md="6" xl="6" xs="6">
               <v-card-actions>
                 <DynamicButton
-                  v-if="loginStore.is_admin"
+                  v-if="loginStore.is_admin || loginStore.project_manager.includes(id)"
                   :icon="'mdi-file-document-multiple-outline'"
                   :text="'Manage Docs'"
                   @click.stop="manageDocs(id)"
