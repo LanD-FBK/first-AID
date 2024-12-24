@@ -1,10 +1,11 @@
 <script>
 import dataService from './components/dataService'
+import SnackbarGeneric from './components/singleFileComponents/snackbar-generic.vue'
 import { useLoginStore } from './store'
 import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
 
 export default {
-  components: { DialogGeneric },
+  components: { DialogGeneric, SnackbarGeneric },
   data() {
     return {
       ds: dataService,
@@ -17,13 +18,14 @@ export default {
       dialogDeleteUser: false,
 
       loadingCreateProject: false,
-      isProjectAdmin: false
-
-      // successNewUserSnackbar: false,
+      isProjectAdmin: false,
 
       //Error handling vars
       // errorDialog: false,
       // errorUserDialogText: '',
+
+      showSnackbar: false,
+      snackbarMessage: ''
     }
   },
   watch: {
@@ -73,6 +75,16 @@ export default {
     //     })
     //   }
     // }
+  },
+  methods: {
+    //Warning: Not atomic, try to move in 'snackbar-generic.vue'
+    successSnackbar: function (callingDialog) {
+      //TODO: change how message picking works. This is too convoluted and resource heavy
+      if (callingDialog == 'createUser') {
+        this.snackbarMessage = 'New User Created Successfully'
+      }
+      this.showSnackbar = true
+    }
   }
 }
 </script>
@@ -121,6 +133,7 @@ export default {
         v-if="loginStore.is_admin"
         v-model="dialogCreateUser"
         component-file="./dialog-create-user.vue"
+        @refresh="this.successSnackbar('createUser')"
       ></DialogGeneric>
       <DialogGeneric
         v-if="loginStore.is_admin"
@@ -172,8 +185,11 @@ export default {
       <!--        </v-card>-->
       <!--      </v-dialog>-->
 
-      <!--New project dialog-->
-
+      <SnackbarGeneric
+        v-model="showSnackbar"
+        :message="this.snackbarMessage"
+        @close="this.showSnackbar = false"
+      />
       <router-view :key="$route.path"></router-view>
     </v-main>
   </v-app>

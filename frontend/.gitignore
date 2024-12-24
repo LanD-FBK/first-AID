@@ -28,3 +28,6 @@ coverage
 
 *.tsbuildinfo
 .vscode
+
+#Python venv directory
+env_folder

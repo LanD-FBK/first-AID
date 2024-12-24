@@ -4,7 +4,7 @@ import { useVariablesStore } from '@/store.js'
 
 export default {
   name: 'dialog-create-user',
-  emits: ['exit'],
+  emits: ['exit', 'refresh'],
   data() {
     return {
       variablesStore: useVariablesStore(),
@@ -18,7 +18,7 @@ export default {
       loadingCreateUser: false,
 
       isNewUserPasswordError: false,
-      newUserPasswordErrorMessage: '',
+      newUserPasswordErrorMessage: ''
     }
   },
   methods: {
@@ -35,7 +35,7 @@ export default {
               self.usersList = undefined
               self.loadingCreateUser = false
               self.dialogCreateUser = false
-              self.successNewUserSnackbar = true
+              self.$emit('refresh')
             })
             .catch(function (error) {
               self.errorDialog = true
@@ -56,7 +56,11 @@ export default {
 
 <template>
   <v-card prepend-icon="mdi-account-plus-outline" title="Create New User">
-    <v-form v-model="validNewUserData" :rules="variablesStore.rulesCreateUser" @submit.prevent="submitNewUser">
+    <v-form
+      v-model="validNewUserData"
+      :rules="variablesStore.rulesCreateUser"
+      @submit.prevent="submitNewUser"
+    >
       <v-card-text>
         <v-text-field
           label="Username"
