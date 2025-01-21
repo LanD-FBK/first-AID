@@ -3,7 +3,7 @@ import dataService from './components/dataService'
 import { useLoginStore } from '@/store'
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_APP_AXIOS_URL,
+  baseURL: import.meta.env.VITE_APP_AXIOS_URL
 })
 
 axiosInstance.interceptors.request.use(

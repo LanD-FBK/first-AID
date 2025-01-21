@@ -1,7 +1,7 @@
 <script>
 import dataService from './components/dataService'
 import SnackbarGeneric from './components/singleFileComponents/snackbar-generic.vue'
-import { useLoginStore } from './store'
+import { useLoginStore, useVariablesStore } from './store'
 import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
 
 export default {
@@ -10,6 +10,8 @@ export default {
     return {
       ds: dataService,
       loginStore: useLoginStore(),
+      variablesStore: useVariablesStore(),
+      interval: null,
 
       //Create project dialog vars
       dialogCreateProject: false,
@@ -84,7 +86,22 @@ export default {
         this.snackbarMessage = 'New User Created Successfully'
       }
       this.showSnackbar = true
+    },
+    changeBearer: function () {
+      /*
+      Just making the call to '/users/me' is enough to update the Bearer
+      token as the Response interceptor in 'axios.js' changes the token everytime a successful
+      API call is made
+      */
+      dataService.returnToken()
     }
+  },
+  mounted: function () {
+    //The function call is not written directly in setInterval due to security concerns:
+    //https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
+    setInterval(() => {
+      this.changeBearer()
+    }, this.variablesStore.apiPingInterval)
   }
 }
 </script>
@@ -190,6 +207,7 @@ export default {
         :message="this.snackbarMessage"
         @close="this.showSnackbar = false"
       />
+      <div>{{ changeBearer() }}</div>
       <router-view :key="$route.path"></router-view>
     </v-main>
   </v-app>

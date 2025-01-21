@@ -255,5 +255,8 @@ export default {
     return axios.patch(
       '/projects/' + projectID + '/tasks/' + taskID + '/annotations/' + annotationID + '/reopen'
     )
+  },
+  returnToken: function () {
+    return axios.get('/users/me')
   }
 }
