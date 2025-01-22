@@ -163,7 +163,7 @@ export default {
     ></DialogGeneric>
     <v-row justify="center">
       <v-col cols="6">
-        <p class="text-h2">Project "{{ projectName }}" Tasks</p>
+        <p class="text-h5 font-weight-bold">Project "{{ projectName }}" Tasks</p>
       </v-col>
       <v-col cols="6" class="text-right">
         <v-btn-group variant="elevated" density="comfortable">
