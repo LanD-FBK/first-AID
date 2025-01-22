@@ -11,7 +11,6 @@ export default {
       ds: dataService,
       loginStore: useLoginStore(),
       variablesStore: useVariablesStore(),
-      interval: null,
 
       //Create project dialog vars
       dialogCreateProject: false,
@@ -94,6 +93,13 @@ export default {
       API call is made
       */
       dataService.returnToken()
+    },
+    goToPrevious: function () {
+      //TODO: complete with all annotation routes
+      const route = this.$route.name
+      if (route == 'tasks') return this.$router.push({ name: 'projects' })
+      else if (route == 'annotation' || 'annotation_edit')
+        return this.$router.push({ name: 'tasks' })
     }
   },
   mounted: function () {
@@ -109,10 +115,8 @@ export default {
 <template>
   <v-app>
     <v-app-bar color="primary">
-      <v-app-bar-nav-icon
-        icon="mdi-abacus"
-        @click="this.$router.push({ name: 'projects' })"
-      ></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon icon="mdi-abacus" @click="this.$router.push({ name: 'projects' })" />
+      <v-app-bar-nav-icon icon="mdi-arrow-u-left-top" @click="this.goToPrevious()" />
       <v-toolbar-title>Annotation Interface</v-toolbar-title>
       <v-menu v-if="loginStore.is_admin">
         <template v-slot:activator="{ props }">
@@ -207,7 +211,6 @@ export default {
         :message="this.snackbarMessage"
         @close="this.showSnackbar = false"
       />
-      <div>{{ changeBearer() }}</div>
       <router-view :key="$route.path"></router-view>
     </v-main>
   </v-app>
