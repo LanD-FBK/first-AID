@@ -95,11 +95,23 @@ export default {
       dataService.returnToken()
     },
     goToPrevious: function () {
-      //TODO: complete with all annotation routes
+      /*
+      BUG: if called in 'projects' (now impossible because component is disabled)
+      Vue errors: 'Missing required param "projectID"'. Even so, all logic still works.
+      Even if 'ProjectID' is not defined Vue still correctly navigates back to the correct
+      project's tasks. Expected behavior? 
+      */
       const route = this.$route.name
-      if (route == 'tasks') return this.$router.push({ name: 'projects' })
-      else if (route == 'annotation' || 'annotation_edit')
+      if (route == 'tasks' || 'changePassword') return this.$router.push({ name: 'projects' })
+      //Every 'annotation' route goes back to 'tasks'
+      else if (route == 'annotation' || 'annotation_edit || annotation_parent')
         return this.$router.push({ name: 'tasks' })
+    }
+  },
+  computed: {
+    isNavigationArrowDisabled() {
+      //Leave arrow disabled even in login? Or make it disappear entirely?
+      return this.$route.name == 'projects' || 'login' ? true : false
     }
   },
   mounted: function () {
@@ -116,7 +128,11 @@ export default {
   <v-app>
     <v-app-bar color="primary">
       <v-app-bar-nav-icon icon="mdi-abacus" @click="this.$router.push({ name: 'projects' })" />
-      <v-app-bar-nav-icon icon="mdi-arrow-u-left-top" @click="this.goToPrevious()" />
+      <v-app-bar-nav-icon
+        icon="mdi-arrow-u-left-top"
+        @click="this.goToPrevious()"
+        :disabled="isNavigationArrowDisabled"
+      />
       <v-toolbar-title>Annotation Interface</v-toolbar-title>
       <v-menu v-if="loginStore.is_admin">
         <template v-slot:activator="{ props }">
