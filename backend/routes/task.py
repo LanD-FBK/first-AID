@@ -3,20 +3,124 @@ import urllib
 from typing import Annotated, Optional
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlmodel import Session, select
 
 from routes.file import get_file_content
-from routes.login import get_current_user
+from routes.login import get_current_user, user_must_be_admin
 from routes.project import check_manage_project
 from sql.crud import get_object_by_id
 from sql.database import get_db
-from sql.models import Task, User, TaskOut, TaskCreate, TaskUserLink, File, TaskFileLink, Actor
+from sql.models import Task, User, TaskOut, TaskCreate, TaskUserLink, File, TaskFileLink, Actor, ActorCreate, \
+    TaskStartType, TaskInsideType
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.post("/import")
+async def call_import(
+        db: Annotated[Session, Depends(get_db)],
+        is_admin: Annotated[bool, Depends(user_must_be_admin)],
+        user: Annotated[User, Depends(get_current_user)],
+        project_id: int,
+        file: UploadFile
+) -> list[TaskOut]:
+    json_data = json.load(file.file)
+    db_project = check_manage_project(db, project_id, user)
+
+    return_tasks = []
+
+    for d in json_data:
+        task_actors = {}
+        task_files = set()
+        for turn in d['data']:
+            speaker = turn['speaker']
+            ground = bool(turn['ground']) and len(turn['ground']) > 0
+            if ground:
+                for g in turn['ground']:
+                    task_files.add(g['file_id'])
+                pass
+            if speaker not in task_actors:
+                task_actors[speaker] = ActorCreate(label=speaker, name=d['roles'][speaker], ground=ground)
+            else:
+                task_actors[speaker].ground = task_actors[speaker].ground or ground
+
+        task_users = set()
+        for u in d['users']:
+            this_user = db.query(User).filter(User.username == u).first()
+            if not this_user:
+                raise HTTPException(status_code=400, detail=f"User {u} not found")
+            task_users.add(this_user.id)
+
+        # TODO: Duplicated code, should be a function
+        allowed_files = set()
+        files = []
+        for file in db_project.files:
+            allowed_files.add(file.id)
+        for fid in task_files:
+            if fid not in allowed_files:
+                raise HTTPException(status_code=400, detail=f"File {fid} is not allowed in project {project_id}")
+            files.append(fid)
+        allowed_users = set()
+        users = []
+        for user in db_project.users:
+            allowed_users.add(user.user_id)
+        for uid in task_users:
+            if uid not in allowed_users:
+                raise HTTPException(status_code=400, detail=f"User {uid} is not allowed in project {project_id}")
+            users.append(uid)
+
+        # TODO: Duplicated code (again), should be a function
+        obj_to_add = []
+        # file_contents = []
+        # file_ids = []
+
+        task_info = {
+            "name": d['task_name'],
+            "start_type": TaskStartType.pre_compiled,
+            "inside_type": TaskInsideType.clean,
+            "language": d['language'],
+            "meta": {
+                "new_annotation_data": d['data']
+            },
+        }
+
+        db_task = Task.model_validate(task_info, update={"project_id": project_id})
+        obj_to_add.append(db_task)
+
+        if users is not None:
+            for user in users:
+                db_user = get_object_by_id(db, user, User)
+                if not db_user:
+                    raise HTTPException(status_code=404, detail=f"User {user} not found")
+                db_obj = TaskUserLink(task=db_task, user=db_user)
+                obj_to_add.append(db_obj)
+        if files is not None:
+            for file in files:
+                db_file = get_object_by_id(db, file, File)
+                if not db_file:
+                    raise HTTPException(status_code=400, detail=f"File {file} not found")
+                # file_contents.append(get_file_content(db_file))
+                # file_ids.append(file)
+                db_obj = TaskFileLink(task=db_task, file=db_file)
+                obj_to_add.append(db_obj)
+        actors_order = 0
+        for k in task_actors:
+            a = task_actors[k]
+            db_actor = Actor(**a.__dict__, task=db_task, ord=actors_order)
+            actors_order += 1
+            db.add(db_actor)
+
+        for o in obj_to_add:
+            db.add(o)
+
+        db.commit()
+        db.refresh(db_task)
+        return_tasks.append(db_task)
+    return return_tasks
 
 
 @router.post("/", status_code=201)
