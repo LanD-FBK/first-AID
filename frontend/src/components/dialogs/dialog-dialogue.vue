@@ -116,23 +116,23 @@ export default {
     this.scrollToBottom()
 
     let vueThis = this
+    let promises = []
+    let fileIDs = []
     for (let file of this.taskInfo.files) {
-      let promises = []
-      let fileIDs = []
       if (!(file.file_id in this.fileContentBuffer)) {
         promises.push(dataService.getFileContent(this.projectID, file.file_id))
         fileIDs.push(file.file_id)
       }
-      if (promises.length > 0) {
-        Promise.all(promises).then(function (result) {
-          for (let i = 0; i < result.length; i++) {
-            vueThis.fileContentBuffer[fileIDs[i]] = result[i].data
-            vueThis.loadChoices()
-          }
-        })
-      } else {
-        this.loadChoices()
-      }
+    }
+    if (promises.length > 0) {
+      Promise.all(promises).then(function (result) {
+        for (let i = 0; i < result.length; i++) {
+          vueThis.fileContentBuffer[fileIDs[i]] = result[i].data
+        }
+        vueThis.loadChoices()
+      })
+    } else {
+      this.loadChoices()
     }
   }
 }
