@@ -184,9 +184,13 @@ async def call_create_task(
         if "start_type_method" not in task.meta or not task.meta["start_type_method"]:
             raise HTTPException(status_code=400, detail=f"Empty start_type_method")
         allowed_methods = {}
+        headers = {"Content-Type": "application/json"}
+        if task.meta['start_type_header_key']:
+            headers[task.meta['start_type_header_key']] = task.meta['start_type_header_value']
         url = task.meta['start_type_url']
         try:
-            contents = urllib.request.urlopen(url).read()
+            req = urllib.request.Request(url, headers=headers)
+            contents = urllib.request.urlopen(req).read()
             api_info = json.loads(contents.decode())
             for m in api_info:
                 allowed_methods[m['generation_method']] = m['roles']
@@ -213,7 +217,7 @@ async def call_create_task(
         post_data['ground_required'] = {"speaker_1": False, "speaker_2": True}
 
         # https://stackoverflow.com/questions/62384020/python-3-7-urllib-request-doesnt-follow-redirect-url
-        req = urllib.request.Request(url, json.dumps(post_data).encode(), headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(url, json.dumps(post_data).encode(), headers=headers)
         try:
             try:
                 urlopen = urllib.request.urlopen(req)
@@ -222,11 +226,11 @@ async def call_create_task(
                     raise  # not a status code that can be handled here
                 redirected_url = urllib.parse.urljoin(url, e.headers['Location'])
                 req = urllib.request.Request(redirected_url, json.dumps(post_data).encode(),
-                                             headers={"Content-Type": "application/json"})
+                                             headers=headers)
                 urlopen = urllib.request.urlopen(req)
                 logger.info('Redirected -> %s' % redirected_url)  # the original redirected url
-        except:
-            raise HTTPException(status_code=400, detail=f"Unable to run script")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Unable to run script: {str(e)}")
         response = urlopen.read()
 
         json_data = json.loads(response.decode())

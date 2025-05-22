@@ -3,16 +3,29 @@ import dataService from './components/dataService'
 import { useLoginStore } from '@/store'
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_APP_AXIOS_URL,
+  baseURL: import.meta.env.VITE_APP_AXIOS_URL
 })
+
+function urlBelongsToBase(base, url) {
+  try {
+    const baseUrl = new URL(base)
+    const fullUrl = new URL(url, base) // allows for relative URLs too
+
+    return baseUrl.origin === fullUrl.origin && fullUrl.pathname.startsWith(baseUrl.pathname)
+  } catch (e) {
+    // Invalid URL
+    return false
+  }
+}
 
 axiosInstance.interceptors.request.use(
   function (config) {
     const loginStore = useLoginStore()
     const token = loginStore.token
-    //adds bearer token header only when calling baseURL APIs
-    if (!String(config.url).includes('www.') && !String(config.url).includes('http'))
+
+    if (urlBelongsToBase(axiosInstance.defaults.baseURL, config.url)) {
       config.headers['Authorization'] = 'Bearer ' + token
+    }
     return config
   },
   function (error) {
@@ -32,12 +45,12 @@ axiosInstance.interceptors.response.use(
   function (error) {
     const loginStore = useLoginStore()
     // Any status codes that falls outside the range of 2xx cause this function to trigger
-    if (error.response.status == 401) {
-      console.log(error)
-      //Removes expired token
-      loginStore.removeBearer()
-      dataService.logout()
-      return Promise.reject(401)
+    if (urlBelongsToBase(axiosInstance.defaults.baseURL, error.config.url)) {
+      if (error.response.status == 401) {
+        loginStore.removeBearer()
+        dataService.logout()
+        return Promise.reject(401)
+      }
     }
     return Promise.reject(error)
   }

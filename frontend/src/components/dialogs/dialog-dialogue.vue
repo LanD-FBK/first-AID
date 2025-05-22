@@ -61,6 +61,11 @@ export default {
           turn_text: turn.text
         })
       }
+      let config = {};
+      if (this.taskInfo['meta']['inside_type_header_key']) {
+        config['headers'] = {};
+        config['headers'][this.taskInfo['meta']['inside_type_header_key']] = this.taskInfo['meta']['inside_type_header_value'];
+      }
       let d = {
         generation_mode: this.taskInfo['meta']['inside_type_api'],
         documents: documents,
@@ -70,30 +75,7 @@ export default {
         manual_selected_grounds: this.useGroundForChoice
       }
 
-      // console.log(d)
-
-      // vueThis.options = [
-      //   {
-      //     speaker: 'speaker_1',
-      //     turn_text:
-      //       "It's clear that black and minority ethnic young people are overrepresented in young offender institutions, which just shows how problematic they are in society.",
-      //     ground: []
-      //   },
-      //   {
-      //     speaker: 'speaker_1',
-      //     turn_text:
-      //       'The statistics show that a staggering 47% of young offenders are from minority ethnic backgrounds, indicating that these groups are inherently more likely to commit crimes.',
-      //     ground: []
-      //   },
-      //   {
-      //     speaker: 'speaker_1',
-      //     turn_text:
-      //       "With black, Asian, and minority ethnic youth making up such a high percentage of those in custody, it's evident that they are a danger to our communities and should be dealt with more harshly.",
-      //     ground: []
-      //   }
-      // ]
-      // vueThis.loadedOptions = true
-      axios.post(this.taskInfo['meta']['inside_type_endpoint'], d).then((response) => {
+      axios.post(this.taskInfo['meta']['inside_type_endpoint'], d, config).then((response) => {
         vueThis.options = []
         for (let o of response.data) {
           for (let g of o.ground) {

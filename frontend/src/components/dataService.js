@@ -192,8 +192,8 @@ export default {
   },
 
   //Gets data from the endpoint specified during project creation
-  getTaskData: function (endpoint) {
-    return axios.get(endpoint)
+  getTaskData: function (endpoint, headers = {}) {
+    return axios.get(endpoint, { headers: headers })
   },
 
   deleteTask: function (projectID, taskID) {
