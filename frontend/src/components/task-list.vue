@@ -1,9 +1,10 @@
 <script>
-import { useNewTaskStore, useLoginStore } from '@/store'
+import { useNewTaskStore, useLoginStore, useTaskVisitStore } from '@/store'
 import dataService from './dataService'
 import TaskAnnotations from '@/components/singleFileComponents/task-annotations.vue'
 import DynamicButton from '@/components/singleFileComponents/dynamic-button.vue'
 import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
+import _ from 'lodash'
 
 function addChildren(obj, annotations, index) {
   if (Object.prototype.hasOwnProperty.call(annotations, index)) {
@@ -26,6 +27,7 @@ export default {
     return {
       newTaskStore: useNewTaskStore(),
       loginStore: useLoginStore(),
+      taskVisitStore: useTaskVisitStore(),
       projectName: undefined,
       tasks: undefined,
       projectID: undefined,
@@ -37,7 +39,9 @@ export default {
     }
   },
   mounted: function () {
-    this.loadData()
+    this.loadData(true)
+    window.addEventListener('scroll', this.debouncedScroll)
+
     // const self = this
     // dataService.getProjectByID(this.id).then(function (data) {
     //   self.projectName = data.data.name
@@ -45,6 +49,9 @@ export default {
     //   self.users = data.data.users
     //   self.files = data.data.files
     // })
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.debouncedScroll)
   },
   computed: {
     isManager: function () {
@@ -95,7 +102,7 @@ export default {
         self.loadData()
       })
     },
-    loadData: function () {
+    loadData: function (updatePosition = false) {
       const self = this
       dataService.getProjectByID(this.$route.params.projectID).then(function (data) {
         self.projectID = self.$route.params.projectID
@@ -128,6 +135,15 @@ export default {
 
           self.annotations[t.id] = new_task
         }
+        if (updatePosition) {
+          let info = self.taskVisitStore.getInfo(self.projectID);
+          if (info) {
+            self.taskPanels = info.tasks
+            self.$nextTick(() => {
+              window.scrollTo(0, info.scrollY);
+            });
+          }
+        }
       })
     },
     collapseAll: function () {
@@ -138,6 +154,16 @@ export default {
       for (let task of this.tasks) {
         this.taskPanels.push('task-' + task.id)
       }
+    },
+    debouncedScroll: _.debounce(function () {
+      this.updateOpened()
+    }, 200),
+    updateOpened: function () {
+      let info = {
+        "tasks": this.taskPanels,
+        "scrollY": window.scrollY
+      }
+      this.taskVisitStore.setInfo(this.projectID, info);
     }
   }
 }
@@ -168,14 +194,14 @@ export default {
           <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
         </v-btn-group>
         <v-btn color="primary" variant="elevated" class="ms-3" @click.stop="dialogNewTask = true"
-          >Add New</v-btn
-        >
+          >Add New
+        </v-btn>
         <!--        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>-->
       </v-col>
     </v-row>
 
     <v-list lines="two">
-      <v-expansion-panels multiple v-model="taskPanels">
+      <v-expansion-panels multiple v-model="taskPanels" @update:model-value="updateOpened">
         <v-expansion-panel v-for="task of tasks" :key="task.id" :value="'task-' + task.id">
           <v-expansion-panel-title class="item-title">
             <v-row no-gutters>

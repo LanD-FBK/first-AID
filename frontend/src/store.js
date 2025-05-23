@@ -1,5 +1,20 @@
 import { defineStore } from 'pinia'
 
+export const useTaskVisitStore = defineStore('task', {
+  state: () => ({
+    info: {}
+  }),
+  actions: {
+    getInfo(projectID) {
+      return this.info[projectID];
+    },
+    setInfo(projectID, info) {
+      this.info[projectID] = info;
+    }
+  },
+  persist: true
+});
+
 export const useLoginStore = defineStore('login', {
   state: () => ({
     token: undefined,
