@@ -17,7 +17,7 @@ export default {
       variablesStore: useVariablesStore(),
       loginStore: useLoginStore(),
       ds: dataService,
-      projects: undefined,
+      projects: undefined
     }
   },
   mounted: function () {
@@ -39,7 +39,7 @@ export default {
       dataService.getProjects().then(function (data) {
         self.projects = data.data
       })
-    },
+    }
   }
 }
 </script>
@@ -64,7 +64,7 @@ export default {
     <v-container fluid v-else>
       <v-row justify="center">
         <v-col cols="6">
-          <p class="text-h2">Projects</p>
+          <p class="text-h5 font-weight-bold">Projects</p>
         </v-col>
         <v-col cols="6" align="right">
           <v-btn
@@ -86,7 +86,6 @@ export default {
           @refresh="updateProjects"
         />
       </template>
-
     </v-container>
   </div>
 </template>
