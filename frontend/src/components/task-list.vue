@@ -139,12 +139,12 @@ export default {
           self.annotations[t.id] = new_task
         }
         if (updatePosition) {
-          let info = self.taskVisitStore.getInfo(self.projectID);
+          let info = self.taskVisitStore.getInfo(self.projectID)
           if (info) {
             self.taskPanels = info.tasks
             self.$nextTick(() => {
-              window.scrollTo(0, info.scrollY);
-            });
+              window.scrollTo(0, info.scrollY)
+            })
           }
         }
       })
@@ -163,109 +163,131 @@ export default {
     }, 200),
     updateOpened: function () {
       let info = {
-        "tasks": this.taskPanels,
-        "scrollY": window.scrollY
+        tasks: this.taskPanels,
+        scrollY: window.scrollY
       }
-      this.taskVisitStore.setInfo(this.projectID, info);
+      this.taskVisitStore.setInfo(this.projectID, info)
     }
   }
 }
 </script>
 
 <template>
-  <v-container fluid v-if="tasks === undefined">
-    <v-row>
-      <v-col cols="12">
-        <v-progress-circular indeterminate class="mx-auto" :size="128"></v-progress-circular>
-      </v-col>
-    </v-row>
-  </v-container>
-  <v-container fluid v-else>
+  <v-container>
     <DialogGeneric
       v-model="dialogNewTask"
       component-file="./dialog-task.vue"
       @refresh="loadData"
       :data="{ users: users, files: files, projectID: Number(projectID) }"
     ></DialogGeneric>
-    <v-row justify="center">
-      <v-col cols="6">
-        <p class="text-h5 font-weight-bold">Project "{{ projectName }}" Tasks</p>
-      </v-col>
-      <v-col cols="6" class="text-right">
-        <v-btn-group variant="elevated" density="comfortable">
-          <v-btn icon="mdi-expand-all" @click="expandAll"></v-btn>
-          <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
-        </v-btn-group>
-        <v-btn color="primary" variant="elevated" class="ms-3" @click.stop="dialogNewTask = true"
-          >Add New
-        </v-btn>
-        <!--        <TaskDialog :users="this.users" :files="this.files" :projectID="Number(this.id)" class="ms-3"></TaskDialog>-->
-      </v-col>
-    </v-row>
+    <template v-if="tasks === undefined">
+      <v-row>
+        <v-col cols="6">
+          <v-skeleton-loader type="heading"></v-skeleton-loader>
+        </v-col>
+        <v-col cols="6" class="text-right">
+          <v-skeleton-loader
+            class="mx-auto d-flex flex-row-reverse loader-buttons"
+            type="button, button"
+          ></v-skeleton-loader>
+        </v-col>
+        <v-col cols="12">
+          <v-skeleton-loader
+            type="list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line"
+          ></v-skeleton-loader>
+        </v-col>
+      </v-row>
+    </template>
+    <template v-else>
+      <v-row>
+        <v-col cols="6">
+          <p class="mt-3 text-h5 font-weight-bold">Tasks for project: "{{ projectName }}"</p>
+        </v-col>
+        <v-col cols="6" class="text-right">
+          <div class="mt-3">
+            <v-btn-group variant="elevated" density="comfortable">
+              <v-btn icon="mdi-expand-all" @click="expandAll"></v-btn>
+              <v-btn icon="mdi-collapse-all" @click="collapseAll"></v-btn>
+            </v-btn-group>
+            <v-btn
+              color="primary"
+              variant="elevated"
+              class="ms-3"
+              prepend-icon="mdi-plus-circle"
+              @click.stop="dialogNewTask = true"
+              >Add New
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
+          <v-list lines="two">
+            <v-expansion-panels multiple v-model="taskPanels" @update:model-value="updateOpened">
+              <v-expansion-panel v-for="task of tasks" :key="task.id" :value="'task-' + task.id">
+                <v-expansion-panel-title class="item-title">
+                  <v-row no-gutters>
+                    <v-col class="d-flex justify-start" cols="12">
+                      <v-list-item :subtitle="displayFiles" :title="task.name" class="task-item">
+                        <template v-slot:prepend>
+                          <v-avatar :color="task.is_active ? 'green-lighten-1' : 'red-lighten-1'">
+                            <v-icon color="white">mdi-head-cog</v-icon>
+                          </v-avatar>
+                        </template>
 
-    <v-list lines="two">
-      <v-expansion-panels multiple v-model="taskPanels" @update:model-value="updateOpened">
-        <v-expansion-panel v-for="task of tasks" :key="task.id" :value="'task-' + task.id">
-          <v-expansion-panel-title class="item-title">
-            <v-row no-gutters>
-              <v-col class="d-flex justify-start" cols="12">
-                <v-list-item :subtitle="displayFiles" :title="task.name" class="task-item">
-                  <template v-slot:prepend>
-                    <v-avatar :color="task.is_active ? 'green-lighten-1' : 'red-lighten-1'">
-                      <v-icon color="white">mdi-head-cog</v-icon>
-                    </v-avatar>
-                  </template>
+                        <template v-slot:append>
+                          <DynamicButton
+                            v-if="task.is_active"
+                            class="ms-3"
+                            text="Add annotation"
+                            color="blue-lighten-1"
+                            icon="mdi-text-box-plus"
+                            @click.stop="addAnnotation(task.id, 0)"
+                          ></DynamicButton>
+                          <template v-if="isManager">
+                            <DynamicButton
+                              v-if="task.is_active"
+                              class="ms-3"
+                              text="Disable"
+                              color="red-lighten-1"
+                              icon="mdi-lock"
+                              @click.stop="deactivateTask(task.id)"
+                            ></DynamicButton>
+                            <DynamicButton
+                              v-else
+                              class="ms-3"
+                              text="Enable"
+                              color="green-lighten-1"
+                              icon="mdi-lock-open-variant"
+                              @click.stop="activateTask(task.id)"
+                            ></DynamicButton>
+                          </template>
+                        </template>
+                      </v-list-item>
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-title>
 
-                  <template v-slot:append>
-                    <DynamicButton
-                      v-if="task.is_active"
-                      class="ms-3"
-                      text="Add annotation"
-                      color="blue-lighten-1"
-                      icon="mdi-text-box-plus"
-                      @click.stop="addAnnotation(task.id, 0)"
-                    ></DynamicButton>
-                    <template v-if="isManager">
-                      <DynamicButton
-                        v-if="task.is_active"
-                        class="ms-3"
-                        text="Disable"
-                        color="red-lighten-1"
-                        icon="mdi-lock"
-                        @click.stop="deactivateTask(task.id)"
-                      ></DynamicButton>
-                      <DynamicButton
-                        v-else
-                        class="ms-3"
-                        text="Enable"
-                        color="green-lighten-1"
-                        icon="mdi-lock-open-variant"
-                        @click.stop="activateTask(task.id)"
-                      ></DynamicButton>
-                    </template>
-                  </template>
-                </v-list-item>
-              </v-col>
-            </v-row>
-          </v-expansion-panel-title>
-
-          <v-expansion-panel-text>
-            <TaskAnnotations
-              v-if="annotations[task.id].children"
-              :annotations="annotations[task.id].children"
-              :is-manager="isManager"
-              :task="task"
-              @close-annotation="closeAnnotation"
-              @reopen-annotation="reopenAnnotation"
-              @add-annotation="addAnnotation"
-              @edit-annotation="editAnnotation"
-              :depth="50"
-            >
-            </TaskAnnotations>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </v-list>
+                <v-expansion-panel-text>
+                  <TaskAnnotations
+                    v-if="annotations[task.id].children"
+                    :annotations="annotations[task.id].children"
+                    :is-manager="isManager"
+                    :task="task"
+                    @close-annotation="closeAnnotation"
+                    @reopen-annotation="reopenAnnotation"
+                    @add-annotation="addAnnotation"
+                    @edit-annotation="editAnnotation"
+                    :depth="50"
+                  >
+                  </TaskAnnotations>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-list>
+        </v-col>
+      </v-row>
+    </template>
   </v-container>
 </template>
 

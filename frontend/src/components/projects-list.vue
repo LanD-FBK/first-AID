@@ -54,37 +54,57 @@ export default {
       :data="{ usersList: usersList }"
     ></DialogGeneric>
 
-    <v-container fluid v-if="projects === undefined">
-      <v-row>
-        <v-col cols="12" class="text-center">
-          <v-progress-circular indeterminate class="mx-auto" :size="128"></v-progress-circular>
-        </v-col>
-      </v-row>
-    </v-container>
-    <v-container fluid v-else>
-      <v-row justify="center">
-        <v-col cols="6">
-          <p class="text-h5 font-weight-bold">Projects</p>
-        </v-col>
-        <v-col cols="6" align="right">
-          <v-btn
-            color="primary"
-            variant="elevated"
-            @click="showDialogCreateProject = true"
-            v-if="loginStore.is_admin"
-            >Add Project
-          </v-btn>
-        </v-col>
-        <v-col cols="12" align="center"></v-col>
-      </v-row>
-      <template v-for="project of projects" :key="project.id">
-        <ListItem
-          :title="project.name"
-          :users="project.users"
-          :id="project.id"
-          :isActive="project.is_active"
-          @refresh="updateProjects"
-        />
+    <v-container>
+      <template v-if="projects === undefined">
+        <v-row>
+          <v-col cols="6">
+            <v-skeleton-loader type="heading"></v-skeleton-loader>
+          </v-col>
+          <v-col cols="6" class="text-right">
+            <v-skeleton-loader
+              class="mx-auto d-flex flex-row-reverse project-loader-buttons"
+              type="button"
+            ></v-skeleton-loader>
+          </v-col>
+          <v-col cols="12">
+            <v-skeleton-loader
+              type="list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line, list-item-avatar-two-line"
+            ></v-skeleton-loader>
+          </v-col>
+        </v-row>
+      </template>
+      <template v-else>
+        <v-row justify="center">
+          <v-col cols="6">
+            <p class="mt-3 text-h5 font-weight-bold">Projects</p>
+          </v-col>
+          <v-col cols="6" class="text-end">
+            <div class="mt-3">
+              <v-btn
+                color="primary"
+                variant="elevated"
+                prepend-icon="mdi-plus-circle"
+                @click="showDialogCreateProject = true"
+                v-if="loginStore.is_admin"
+                >Add Project
+              </v-btn>
+            </div>
+          </v-col>
+          <v-col cols="12" align="center"></v-col>
+        </v-row>
+        <v-card>
+          <v-list lines="two">
+            <ListItem
+              v-for="project of projects"
+              :key="project.id"
+              :title="project.name"
+              :users="project.users"
+              :id="project.id"
+              :isActive="project.is_active"
+              @refresh="updateProjects"
+            />
+          </v-list>
+        </v-card>
       </template>
     </v-container>
   </div>
