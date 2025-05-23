@@ -47,7 +47,7 @@ export const useLoginStore = defineStore('login', {
       this.removeUser()
     },
     isToken() {
-      return !!this.token;
+      return !!this.token
     }
   },
   persist: true
@@ -65,7 +65,8 @@ export const useVariablesStore = defineStore('variables', {
         return 'This field cannot be empty'
       }
     ],
-
+    //Interval time for API pings. 600000ms = 10min
+    apiPingInterval: 600000
   })
 })
 
@@ -84,12 +85,12 @@ export const useNewTaskStore = defineStore('newTask', {
       { complete: 'English', apiFormat: 'en' },
       { complete: 'Spanish', apiFormat: 'es' },
       { complete: 'Polish', apiFormat: 'pl' },
-      { complete: 'Maltese', apiFormat: 'mt' },
+      { complete: 'Maltese', apiFormat: 'mt' }
     ],
     initialExternalGround: {
-      name: "",
-      link: "",
-      text: ""
+      name: '',
+      link: '',
+      text: ''
     },
     initialTaskRoles: [
       {

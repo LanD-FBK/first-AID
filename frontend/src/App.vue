@@ -1,14 +1,16 @@
 <script>
 import dataService from './components/dataService'
-import { useLoginStore } from './store'
+import SnackbarGeneric from './components/singleFileComponents/snackbar-generic.vue'
+import { useLoginStore, useVariablesStore } from './store'
 import DialogGeneric from '@/components/dialogs/dialog-generic.vue'
 
 export default {
-  components: { DialogGeneric },
+  components: { DialogGeneric, SnackbarGeneric },
   data() {
     return {
       ds: dataService,
       loginStore: useLoginStore(),
+      variablesStore: useVariablesStore(),
 
       //Create project dialog vars
       dialogCreateProject: false,
@@ -17,13 +19,14 @@ export default {
       dialogDeleteUser: false,
 
       loadingCreateProject: false,
-      isProjectAdmin: false
-
-      // successNewUserSnackbar: false,
+      isProjectAdmin: false,
 
       //Error handling vars
       // errorDialog: false,
       // errorUserDialogText: '',
+
+      showSnackbar: false,
+      snackbarMessage: ''
     }
   },
   watch: {
@@ -73,6 +76,50 @@ export default {
     //     })
     //   }
     // }
+  },
+  methods: {
+    //Warning: Not atomic, try to move in 'snackbar-generic.vue'
+    successSnackbar: function (callingDialog) {
+      //TODO: change how message picking works. This is too convoluted and resource heavy
+      if (callingDialog == 'createUser') {
+        this.snackbarMessage = 'New User Created Successfully'
+      }
+      this.showSnackbar = true
+    },
+    changeBearer: function () {
+      /*
+      Just making the call to '/users/me' is enough to update the Bearer
+      token as the Response interceptor in 'axios.js' changes the token everytime a successful
+      API call is made
+      */
+      dataService.returnToken()
+    },
+    goToPrevious: function () {
+      /*
+      BUG: if called in 'projects' (now impossible because component is disabled)
+      Vue errors: 'Missing required param "projectID"'. Even so, all logic still works.
+      Even if 'ProjectID' is not defined Vue still correctly navigates back to the correct
+      project's tasks. Expected behavior? 
+      */
+      const route = this.$route.name
+      if (route == 'tasks' || 'changePassword') return this.$router.push({ name: 'projects' })
+      //Every 'annotation' route goes back to 'tasks'
+      else if (route == 'annotation' || 'annotation_edit || annotation_parent')
+        return this.$router.push({ name: 'tasks' })
+    }
+  },
+  computed: {
+    isNavigationArrowDisabled() {
+      //Leave arrow disabled even in login? Or make it disappear entirely?
+      return this.$route.name == 'projects' || 'login' ? true : false
+    }
+  },
+  mounted: function () {
+    //The function call is not written directly in setInterval due to security concerns:
+    //https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
+    setInterval(() => {
+      this.changeBearer()
+    }, this.variablesStore.apiPingInterval)
   }
 }
 </script>
@@ -80,10 +127,12 @@ export default {
 <template>
   <v-app>
     <v-app-bar color="primary">
+      <v-app-bar-nav-icon icon="mdi-abacus" @click="this.$router.push({ name: 'projects' })" />
       <v-app-bar-nav-icon
-        icon="mdi-abacus"
-        @click="this.$router.push({ name: 'projects' })"
-      ></v-app-bar-nav-icon>
+        icon="mdi-arrow-u-left-top"
+        @click="this.goToPrevious()"
+        :disabled="isNavigationArrowDisabled"
+      />
       <v-toolbar-title>Annotation Interface</v-toolbar-title>
       <v-menu v-if="loginStore.is_admin">
         <template v-slot:activator="{ props }">
@@ -121,6 +170,7 @@ export default {
         v-if="loginStore.is_admin"
         v-model="dialogCreateUser"
         component-file="./dialog-create-user.vue"
+        @refresh="this.successSnackbar('createUser')"
       ></DialogGeneric>
       <DialogGeneric
         v-if="loginStore.is_admin"
@@ -172,8 +222,11 @@ export default {
       <!--        </v-card>-->
       <!--      </v-dialog>-->
 
-      <!--New project dialog-->
-
+      <SnackbarGeneric
+        v-model="showSnackbar"
+        :message="this.snackbarMessage"
+        @close="this.showSnackbar = false"
+      />
       <router-view :key="$route.path"></router-view>
     </v-main>
   </v-app>

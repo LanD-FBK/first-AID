@@ -7,3 +7,6 @@ test.py
 .idea
 .DS_Store
 env2
+
+#Python venv folder
+env_folder
