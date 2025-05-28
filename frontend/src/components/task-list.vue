@@ -228,7 +228,7 @@ export default {
                 <v-expansion-panel-title class="item-title">
                   <v-row no-gutters>
                     <v-col class="d-flex justify-start" cols="12">
-                      <v-list-item :subtitle="displayFiles" :title="task.name" class="task-item">
+                      <v-list-item :subtitle="displayFiles" :title="task.id + '. ' + task.name" class="task-item">
                         <template v-slot:prepend>
                           <v-avatar :color="task.is_active ? 'green-lighten-1' : 'red-lighten-1'">
                             <v-icon color="white">mdi-head-cog</v-icon>
