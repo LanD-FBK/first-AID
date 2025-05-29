@@ -193,6 +193,7 @@ class TaskBase(SQLModel):
 class TaskOutSimple(SQLModel):
     name: str
     is_active: bool
+    files: list["TaskFileLinkOutputWithFile"] = []
     id: int
     annotations: list["AnnotationOutSimple"] = []
 

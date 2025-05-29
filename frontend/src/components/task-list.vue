@@ -56,12 +56,12 @@ export default {
   computed: {
     isManager: function () {
       return this.loginStore.is_admin || this.loginStore.project_manager.includes(this.projectID)
-    },
-    displayFiles: function () {
-      return String('Files: ' + this.files.map((file) => file.name).join(', '))
     }
   },
   methods: {
+    displayFiles: function (taskIndex) {
+      return 'Files: ' + this.tasks[taskIndex].files.map((file) => file.file.name).join(', ')
+    },
     addAnnotation: function (task_id, parent) {
       if (parent === 0) {
         this.$router.push({
@@ -224,11 +224,11 @@ export default {
         <v-col cols="12">
           <v-list lines="two">
             <v-expansion-panels multiple v-model="taskPanels" @update:model-value="updateOpened">
-              <v-expansion-panel v-for="task of tasks" :key="task.id" :value="'task-' + task.id">
+              <v-expansion-panel v-for="(task, taskIndex) of tasks" :key="task.id" :value="'task-' + task.id">
                 <v-expansion-panel-title class="item-title">
                   <v-row no-gutters>
                     <v-col class="d-flex justify-start" cols="12">
-                      <v-list-item :subtitle="displayFiles" :title="task.id + '. ' + task.name" class="task-item">
+                      <v-list-item :subtitle="displayFiles(taskIndex)" :title="task.id + '. ' + task.name" class="task-item">
                         <template v-slot:prepend>
                           <v-avatar :color="task.is_active ? 'green-lighten-1' : 'red-lighten-1'">
                             <v-icon color="white">mdi-head-cog</v-icon>
