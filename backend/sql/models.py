@@ -309,7 +309,7 @@ class TaskFileLinkOutput(SQLModel):
 
 
 class TaskFileLinkOutputWithFile(TaskFileLinkOutput):
-    file: "FileOutput"
+    file: Optional["FileOutput"] = None
 
 
 class TaskFileLink(TaskFileLinkOutput, DeletedModel, table=True):
