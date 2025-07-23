@@ -1,0 +1,3 @@
+{
+    "DEMO": "Given the following article, generate a dialogue in <LANGUAGE> between a user wantind information on a document and an Assistant who provides polite and informed answers based on the article. The dialogue must include at most <TURNS_NUMBER> exchanges. Return the response in JSON format where each turn is clearly marked by the speaker. Use the following format: { \"dialogue\": [ {\"speaker\": \"<SPEAKER_1>\", \"text\": \"[Dialogue]\"}, {\"speaker\": \"<SPEAKER_2>\", \"text\": \"[Dialogue]\"}, ... ] } Ensure the structure remains consistent throughout."
+}

@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+llama-index == 0.10.28
+llama-index-retrievers-bm25
+split
+wtpsplit
+rank_bm25
+jprint
+torch
