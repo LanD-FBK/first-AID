@@ -1,7 +1,7 @@
 # first-AID
 
 <p>
-First-AID is a human-in-the-loop (HITL) data collection framework for knowledge-driven generation of synthetic dialogues using LLM prompting. In particular, our framework implements different strategies of data collection that require different user intervention during dialogue generation to reduce post-editing efforts and enhance the quality of generated dialogues. Find more details in our ACL 2025 paper: *[First-AID: the first Annotation Interface for grounded Dialogues](/https://aclanthology.org/2025.acl-demo.54/) (Menini et al., ACL 2025)*. If you use the First-AID please <a href="https://github.com/LanD-FBK/first-AID/tree/main#bibtex-citation">cite</a> our original paper.
+First-AID is a human-in-the-loop (HITL) data collection framework for knowledge-driven generation of synthetic dialogues using LLM prompting. In particular, our framework implements different strategies of data collection that require different user intervention during dialogue generation to reduce post-editing efforts and enhance the quality of generated dialogues. Find more details in our ACL 2025 paper: <a href="https://aclanthology.org/2025.acl-demo.54/"><em>First-AID: the first Annotation Interface for grounded Dialogues</em></a> (Menini et al., ACL 2025). If you use the First-AID please <a href="https://github.com/LanD-FBK/first-AID/tree/main#bibtex-citation">cite</a> our original paper.
 
 </p>
 
