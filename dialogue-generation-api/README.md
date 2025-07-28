@@ -7,7 +7,7 @@ Install requirements:
 ```
 pip install -r requirements
 ```
-Run the api. It is possible to had custom parameters `--host` (default="0.0.0.0") and `--port`(default=8013)
+Run the api. It is possible to customize `--host` (default="0.0.0.0") and `--port`(default=8013) parameters.
 
 ```
 python start-api.py
