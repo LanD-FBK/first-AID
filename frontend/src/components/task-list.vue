@@ -60,7 +60,12 @@ export default {
   },
   methods: {
     displayFiles: function (taskIndex) {
-      return 'Files: ' + this.tasks[taskIndex].files.map((file) => file.file.name).join(', ')
+      return 'Files: ' +
+        this.tasks[taskIndex].files
+          .filter(f => f?.file)
+          .map(f => f.file.name)
+          .join(', ');
+      // return 'Files: ' + this.tasks[taskIndex].files.map((file) => file.file.name).join(', ')
     },
     addAnnotation: function (task_id, parent) {
       if (parent === 0) {
