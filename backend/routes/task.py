@@ -36,8 +36,17 @@ async def call_import(
     for d in json_data:
         task_actors = {}
         task_files = set()
+        for actor in d['actors_list']:
+            task_actors[actor['label']] = ActorCreate(label=actor['label'], name=actor['name'], ground=actor['ground'],
+                                                        answers=actor.get('answers', 1))
+
+        if "file_ids" in d:
+            for fid in d['file_ids']:
+                task_files.add(fid)
         for turn in d['data']:
             speaker = turn['speaker']
+            if "ground" not in turn:
+                turn['ground'] = []
             ground = bool(turn['ground']) and len(turn['ground']) > 0
             if ground:
                 for g in turn['ground']:
@@ -87,6 +96,11 @@ async def call_import(
                 "new_annotation_data": d['data']
             },
         }
+
+        if d['meta']:
+            task_info["meta"].update(d['meta'])
+        if d['type']:
+            task_info["inside_type"] = d['type']
 
         db_task = Task.model_validate(task_info, update={"project_id": project_id})
         obj_to_add.append(db_task)
