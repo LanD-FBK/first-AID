@@ -1,0 +1,13 @@
+{
+    "DEMO": {
+        "FIRST_QUESTION": {
+            "PROMPT": "Given these articles, provide <OPTIONS_NUMBER> question in <LANGUAGE> based on the article. The information needed to answer your message must be present in the article. Be as specific as possible. Return the response in JSON using the following format: { \"messages\": [ {\"text\": \"[message]\"}, {\"text\": \"[message]\"}, ... ] } Ensure the structure remains consistent throughout. ARTICLES: "
+        },
+        "QUESTION": {
+            "PROMPT": "Given the chat history that will follow and the latest turn <latest_turn><LAST_TURN></latest_turn> which references context in the chat history, formulate <OPTIONS_NUMBER> replies to the last turn in <LANGUAGE> pretending to be a <SPEAKER_1> that want additional information. Do not repeat prior turns. The information needed to answer your message must be present in the article. Be as specific as possible. Return the response in JSON using the following format: { \"messages\": [ {\"text\": \"[reply]\"}, {\"text\": \"[reply]\"}, ... ] }. Ensure the structure remains consistent throughout. CHAT HISTORY:"
+        },
+        "ANSWER": {
+             "FROM_GROUND": "You are an <SPEAKER_2> who provides polite and informed answer in <LANGUAGE>. Only use the provided context (delimited with XML tag) <context><GROUND_TEXT></context> to answer the given question (delimited with XML tag): <question><LAST_QUESTION></question> . Ignore everything you know outside the context. Generate one answer with no more than three sentences. Be as specific as possible. Return the response in JSON using the following format: { \"messages\": [ {\"text\": \"[message]\"}]}. Ensure the structure remains consistent throughout."      
+        }
+    }
+}
