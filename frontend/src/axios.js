@@ -23,9 +23,13 @@ axiosInstance.interceptors.request.use(
     const loginStore = useLoginStore()
     const token = loginStore.token
 
-    if (urlBelongsToBase(axiosInstance.defaults.baseURL, config.url)) {
-      config.headers['Authorization'] = 'Bearer ' + token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
     }
+
+    // if (urlBelongsToBase(axiosInstance.defaults.baseURL, config.url)) {
+    //   config.headers['Authorization'] = 'Bearer ' + token
+    // }
     return config
   },
   function (error) {
@@ -45,13 +49,13 @@ axiosInstance.interceptors.response.use(
   function (error) {
     const loginStore = useLoginStore()
     // Any status codes that falls outside the range of 2xx cause this function to trigger
-    if (urlBelongsToBase(axiosInstance.defaults.baseURL, error.config.url)) {
+    // if (urlBelongsToBase(axiosInstance.defaults.baseURL, error.config.url)) {
       if (error.response.status == 401) {
         loginStore.removeBearer()
         dataService.logout()
         return Promise.reject(401)
       }
-    }
+    // }
     return Promise.reject(error)
   }
 )
