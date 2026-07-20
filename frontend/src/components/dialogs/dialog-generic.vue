@@ -2,14 +2,19 @@
 import { useVariablesStore } from '@/store.js'
 import { defineAsyncComponent, markRaw } from 'vue'
 
+const dialogComponents = import.meta.glob('./*.vue')
+
 export default {
   name: 'dialog-generic',
+
   props: {
     value: Boolean,
     data: Object,
     componentFile: String
   },
+
   emits: ['refresh', 'update:modelValue'],
+
   computed: {
     showMe: {
       get() {
@@ -20,25 +25,30 @@ export default {
       }
     }
   },
+
   mounted() {
-    this.myComponent = markRaw(
-      defineAsyncComponent(() =>
-        import(/* @vite-ignore */ this.componentFile).then().catch(() => {
-          // ignored
-        })
+    const loader = dialogComponents[this.componentFile]
+
+    if (!loader) {
+      console.error(
+        `Dialog component not found: ${this.componentFile}`,
+        Object.keys(dialogComponents)
       )
+      return
+    }
+
+    this.myComponent = markRaw(
+      defineAsyncComponent(loader)
     )
   },
+
   methods: {
-    refresh: function (returnData) {
+    refresh(returnData) {
       this.showMe = false
       this.$emit('refresh', returnData)
-      // if (getCurrentInstance()?.vnode?.props?.refresh) {
-      //   console.log("Refresh interno")
-      //   this.$emit('refresh')
-      // }
     }
   },
+
   data() {
     return {
       variablesStore: useVariablesStore(),
